@@ -1,0 +1,24 @@
+{
+  "generationParameters": {
+    "generationDate": "Tue Jul 15 2025 11:08:04 GMT+0000 (Coordinated Universal Time)",
+    "generatorPlatform": "SAP Business Application Studio",
+    "serviceType": "SAP System (ABAP On Premise)",
+    "metadataFilename": "",
+    "serviceUrl": "http://35.207.190.137:50000/sap/opu/odata/sap/ZBN_TRIP_ODATA_SRV",
+    "appName": "tripjournal-ui",
+    "appTitle": "TripJournal",
+    "appDescription": "Track company car data.",
+    "appNamespace": "tripjournal",
+    "ui5Theme": "sap_horizon",
+    "ui5Version": "1.120.14",
+    "enableCodeAssist": false,
+    "enableEslint": false,
+    "enableTypeScript": false,
+    "showMockDataInfo": true,
+    "generatorVersion": "1.18.2",
+    "template": "Basic V2",
+    "generatorName": "SAP Fiori Application Generator",
+    "entityRelatedConfig": [],
+    "launchText": "In order to launch the generated app, simply run the following from the generated app root folder:\n\n```\n    npm start\n```"
+  }
+}

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="1.0" xmlns:edmx="http://schemas.microsoft.com/ado/2007/06/edmx" xmlns:m="http://schemas.microsoft.com/ado/2007/08/dataservices/metadata" xmlns:sap="http://www.sap.com/Protocols/SAPData">
+    <edmx:DataServices m:DataServiceVersion="2.0">
+        <Schema Namespace="ZBN_TRIP_ODATA_SRV" xml:lang="en" sap:schema-version="1" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+            <EntityType Name="TripHeader" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Username"/>
+                    <PropertyRef Name="Yyear"/>
+                    <PropertyRef Name="Mmonth"/>
+                    <PropertyRef Name="LicensePlate"/>
+                </Key>
+                <Property Name="Username" Type="Edm.String" Nullable="false" MaxLength="12" sap:unicode="false" sap:label="User Name" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Yyear" Type="Edm.Int16" Nullable="false" sap:unicode="false" sap:label="Évszám" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="Mmonth" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:label="Hónap" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="LicensePlate" Type="Edm.String" Nullable="false" MaxLength="7" sap:unicode="false" sap:label="Rendszám" sap:creatable="false" sap:updatable="false" sap:sortable="false"/>
+                <Property Name="KmBefore" Type="Edm.Int32" Nullable="false" sap:unicode="false" sap:label="KM a hónap elején" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="KmAfter" Type="Edm.Int32" Nullable="false" sap:unicode="false" sap:label="KM állás hó végén" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="GasPrice" Type="Edm.Decimal" Nullable="false" Precision="7" Scale="3" sap:unicode="false" sap:unit="GasCurr" sap:label="Benzinár" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="GasCurr" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:label="Pénznem" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false" sap:semantics="currency-code"/>
+                <Property Name="Status" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:label="Státusz" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Note" Type="Edm.String" Nullable="false" MaxLength="300" sap:unicode="false" sap:label="Jegyzet" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <NavigationProperty Name="to_TripItemSet" Relationship="ZBN_TRIP_ODATA_SRV.TripHeaderItem" FromRole="FromRole_TripHeaderItem" ToRole="ToRole_TripHeaderItem"/>
+            </EntityType>
+            <EntityType Name="TripItem" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Username"/>
+                    <PropertyRef Name="Yyear"/>
+                    <PropertyRef Name="Mmonth"/>
+                    <PropertyRef Name="LicensePlate"/>
+                    <PropertyRef Name="Batchid"/>
+                </Key>
+                <Property Name="Username" Type="Edm.String" Nullable="false" MaxLength="12" sap:unicode="false" sap:label="User Name" sap:sortable="false"/>
+                <Property Name="Yyear" Type="Edm.Int16" Nullable="false" sap:unicode="false" sap:label="Évszám" sap:sortable="false"/>
+                <Property Name="Mmonth" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:label="Hónap" sap:sortable="false"/>
+                <Property Name="LicensePlate" Type="Edm.String" Nullable="false" MaxLength="7" sap:unicode="false" sap:label="Rendszám" sap:sortable="false"/>
+                <Property Name="Batchid" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Tételazonosító" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="FromAddr" Type="Edm.Int32" Nullable="false" sap:unicode="false" sap:label="Sorszám" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="ToAddr" Type="Edm.Int32" Nullable="false" sap:unicode="false" sap:label="Sorszám" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Ddate" Type="Edm.DateTime" Nullable="false" Precision="7" sap:unicode="false" sap:label="Date" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Distance" Type="Edm.Int32" Nullable="false" sap:unicode="false" sap:label="Távolság" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Cost" Type="Edm.Decimal" Nullable="false" Precision="7" Scale="3" sap:unicode="false" sap:unit="Currency" sap:label="Benzinár" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Currency" Type="Edm.String" Nullable="false" MaxLength="5" sap:unicode="false" sap:label="Pénznem" sap:sortable="false" sap:filterable="false" sap:semantics="currency-code"/>
+                <Property Name="Note" Type="Edm.String" Nullable="false" MaxLength="300" sap:unicode="false" sap:label="Jegyzet" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="ZbnhCar" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="LicensePlate"/>
+                    <PropertyRef Name="Type"/>
+                    <PropertyRef Name="Manufacturer"/>
+                </Key>
+                <Property Name="LicensePlate" Type="Edm.String" Nullable="false" MaxLength="7" sap:unicode="false" sap:label="Rendszám" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Type" Type="Edm.String" Nullable="false" MaxLength="40" sap:unicode="false" sap:label="Típus" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Manufacturer" Type="Edm.String" Nullable="false" MaxLength="40" sap:unicode="false" sap:label="Gyártó" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="ZbnhAddress" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Name"/>
+                </Key>
+                <Property Name="Name" Type="Edm.String" Nullable="false" MaxLength="50" sap:unicode="false" sap:label="Cím Neve" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Country" Type="Edm.String" Nullable="false" MaxLength="3" sap:unicode="false" sap:label="Country/Reg." sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="PostCode" Type="Edm.String" Nullable="false" MaxLength="10" sap:unicode="false" sap:label="Postal Code" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="City" Type="Edm.String" Nullable="false" MaxLength="40" sap:unicode="false" sap:label="City" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Street" Type="Edm.String" Nullable="false" MaxLength="60" sap:unicode="false" sap:label="Street" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Streettype" Type="Edm.String" Nullable="false" MaxLength="2" sap:unicode="false" sap:label="Street Abbrev." sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <EntityType Name="ZbnhStatus" sap:content-version="1">
+                <Key>
+                    <PropertyRef Name="Code"/>
+                    <PropertyRef Name="Text"/>
+                </Key>
+                <Property Name="Code" Type="Edm.String" Nullable="false" MaxLength="1" sap:unicode="false" sap:label="Státusz" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+                <Property Name="Text" Type="Edm.String" Nullable="false" MaxLength="300" sap:unicode="false" sap:label="Jegyzet" sap:creatable="false" sap:updatable="false" sap:sortable="false" sap:filterable="false"/>
+            </EntityType>
+            <Association Name="TripHeaderItem" sap:content-version="1">
+                <End Type="ZBN_TRIP_ODATA_SRV.TripHeader" Multiplicity="1" Role="FromRole_TripHeaderItem"/>
+                <End Type="ZBN_TRIP_ODATA_SRV.TripItem" Multiplicity="*" Role="ToRole_TripHeaderItem"/>
+                <ReferentialConstraint>
+                    <Principal Role="FromRole_TripHeaderItem">
+                        <PropertyRef Name="LicensePlate"/>
+                        <PropertyRef Name="Mmonth"/>
+                        <PropertyRef Name="Yyear"/>
+                        <PropertyRef Name="Username"/>
+                    </Principal>
+                    <Dependent Role="ToRole_TripHeaderItem">
+                        <PropertyRef Name="LicensePlate"/>
+                        <PropertyRef Name="Mmonth"/>
+                        <PropertyRef Name="Yyear"/>
+                        <PropertyRef Name="Username"/>
+                    </Dependent>
+                </ReferentialConstraint>
+            </Association>
+            <EntityContainer Name="ZBN_TRIP_ODATA_SRV_Entities" m:IsDefaultEntityContainer="true" sap:supported-formats="atom json xlsx">
+                <EntitySet Name="TripHeaderSet" EntityType="ZBN_TRIP_ODATA_SRV.TripHeader" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="TripItemSet" EntityType="ZBN_TRIP_ODATA_SRV.TripItem" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="ZbnhCarSet" EntityType="ZBN_TRIP_ODATA_SRV.ZbnhCar" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="ZbnhAddressSet" EntityType="ZBN_TRIP_ODATA_SRV.ZbnhAddress" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <EntitySet Name="ZbnhStatusSet" EntityType="ZBN_TRIP_ODATA_SRV.ZbnhStatus" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:pageable="false" sap:content-version="1"/>
+                <AssociationSet Name="TripHeaderItem" Association="ZBN_TRIP_ODATA_SRV.TripHeaderItem" sap:creatable="false" sap:updatable="false" sap:deletable="false" sap:content-version="1">
+                    <End EntitySet="TripHeaderSet" Role="FromRole_TripHeaderItem"/>
+                    <End EntitySet="TripItemSet" Role="ToRole_TripHeaderItem"/>
+                </AssociationSet>
+            </EntityContainer>
+            <Annotation Term="Core.SchemaVersion" String="1.0.0" xmlns="http://docs.oasis-open.org/odata/ns/edm"/>
+            <atom:link rel="self" href="http://35.207.190.137:50000/sap/opu/odata/sap/ZBN_TRIP_ODATA_SRV/$metadata" xmlns:atom="http://www.w3.org/2005/Atom"/>
+            <atom:link rel="latest-version" href="http://35.207.190.137:50000/sap/opu/odata/sap/ZBN_TRIP_ODATA_SRV/$metadata" xmlns:atom="http://www.w3.org/2005/Atom"/>
+        </Schema>
+    </edmx:DataServices>
+</edmx:Edmx>

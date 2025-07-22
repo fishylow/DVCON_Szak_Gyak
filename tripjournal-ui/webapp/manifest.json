@@ -1,0 +1,126 @@
+{
+  "_version": "1.60.0",
+  "sap.app": {
+    "id": "tripjournal.tripjournalui",
+    "type": "application",
+    "i18n": "i18n/i18n.properties",
+    "applicationVersion": {
+      "version": "0.0.1"
+    },
+    "title": "{{appTitle}}",
+    "description": "{{appDescription}}",
+    "resources": "resources.json",
+    "sourceTemplate": {
+      "id": "@sap/generator-fiori:basic",
+      "version": "1.18.2",
+      "toolsId": "861beb89-ff4d-4ae0-b350-6bd99d0b5dc7"
+    },
+    "dataSources": {
+      "mainService": {
+        "uri": "/sap/opu/odata/sap/ZBN_TRIP_ODATA_SRV/",
+        "type": "OData",
+        "settings": {
+          "annotations": [],
+          "localUri": "localService/mainService/metadata.xml",
+          "odataVersion": "2.0"
+        }
+      }
+    }
+  },
+  "sap.ui": {
+    "technology": "UI5",
+    "icons": {
+      "icon": "",
+      "favIcon": "",
+      "phone": "",
+      "phone@2": "",
+      "tablet": "",
+      "tablet@2": ""
+    },
+    "deviceTypes": {
+      "desktop": true,
+      "tablet": true,
+      "phone": true
+    }
+  },
+  "sap.ui5": {
+    "flexEnabled": true,
+    "dependencies": {
+      "minUI5Version": "1.120.14",
+      "libs": {
+        "sap.m": {},
+        "sap.ui.core": {}
+      }
+    },
+    "contentDensities": {
+      "compact": true,
+      "cozy": true
+    },
+    "models": {
+      "i18n": {
+        "type": "sap.ui.model.resource.ResourceModel",
+        "settings": {
+          "bundleName": "tripjournal.tripjournalui.i18n.i18n"
+        }
+      },
+      "": {
+        "dataSource": "mainService",
+        "preload": true,
+        "settings": {}
+      }
+    },
+    "resources": {
+      "css": [
+        {
+          "uri": "css/style.css"
+        }
+      ]
+    },
+    "routing": {
+      "config": {
+        "routerClass": "sap.m.routing.Router",
+        "controlAggregation": "pages",
+        "controlId": "app",
+        "transition": "slide",
+        "type": "View",
+        "viewType": "XML",
+        "path": "tripjournal.tripjournalui.view",
+        "async": true,
+        "viewPath": "tripjournal.tripjournalui.view"
+      },
+      "routes": [
+        {
+          "name": "RouteTripJournal",
+          "pattern": ":?query:",
+          "target": [
+            "TargetTripJournal"
+          ]
+        },
+        {
+          "name": "RouteDetail",
+          "pattern": "header/{username}/{year}/{month}/{licensePlate}",
+          "target": [
+              "TargetDetail"
+          ]
+      }
+      ],
+      "targets": {
+        "TargetTripJournal": {
+          "id": "TripJournal",
+          "name": "TripJournal"
+        },
+        "TargetDetail": {
+            "viewType": "XML",
+            "viewName": "Detail",
+            "viewId": "Detail"
+        }
+      }
+    },
+    "rootView": {
+      "viewName": "tripjournal.tripjournalui.view.App",
+      "type": "XML",
+      "id": "App",
+      "async": true
+    }
+  }
+}

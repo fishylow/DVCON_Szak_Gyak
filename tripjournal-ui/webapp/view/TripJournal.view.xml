@@ -1,0 +1,124 @@
+<mvc:View
+    controllerName="tripjournal.tripjournalui.controller.TripJournal"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+>
+    <Page id="tripJournalPage" title="{i18n>appTitle}">
+        <subHeader>
+            <Toolbar id="filterBar">
+                <Title text="{i18n>filterBy}" />
+                <Select
+                    id="statusFilter"
+                    width="15rem"
+                    items="{
+                        path: '/ZbnhStatusSet'
+                    }"
+                >
+                    <core:Item key="{Code}" text="{Text}" />
+                </Select>
+                <DateRangeSelection
+                    id="dateFilter"
+                    width="20rem"
+                    displayFormat="yyyy.MM.dd"
+                />
+                <SearchField
+                    id="licensePlateFilter"
+                    width="15rem"
+                    placeholder="{i18n>licensePlate}"
+                    search=".onFilterTrips"
+                />
+                <ToolbarSpacer />
+                <Button
+                    text="{i18n>filterButtonText}"
+                    press=".onFilterTrips"
+                    type="Emphasized"
+                />
+                 <Button
+                    text="{i18n>clearFilterButtonText}"
+                    press=".onClearFilter"
+                />
+            </Toolbar>
+        </subHeader>
+        <content>
+            <Table
+                id="tripHeaderTable"
+                inset="false"
+                items="{
+                    path: '/TripHeaderSet',
+                    parameters: {
+                        expand: 'to_TripItemSet'
+                    },
+                    sorter: {
+                        path: 'Yyear',
+                        descending: true
+                    }
+                }"
+                class="sapUiResponsiveMargin"
+                width="auto"
+            >
+                <headerToolbar>
+                    <Toolbar>
+                        <Title text="{i18n>tripsTitle}" level="H2"/>
+                        <ToolbarSpacer />
+                        <Button
+                            id="newTripButton"
+                            icon="sap-icon://add"
+                            tooltip="{i18n>newTripTooltip}"
+                            press=".onOpenCreateDialog"
+                        />
+                    </Toolbar>
+                </headerToolbar>
+                <columns>
+                    <Column><Text text="{i18n>colLicensePlate}" /></Column>
+                    <Column><Text text="{i18n>colDate}" /></Column>
+                    <Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>colStatus}" /></Column>
+                    <Column minScreenWidth="Tablet" demandPopin="true" hAlign="End"><Text text="{i18n>colItemCount}" /></Column>
+                    <Column minScreenWidth="Desktop" demandPopin="true" hAlign="End"><Text text="{i18n>colKmBefore}" /></Column>
+                    <Column minScreenWidth="Desktop" demandPopin="true" hAlign="End"><Text text="{i18n>colKmAfter}" /></Column>
+                    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>colNote}" /></Column>
+                </columns>
+                <items>
+                    <ColumnListItem
+                        type="Navigation"
+                        press=".onNavToDetails"
+                    >
+                        <cells>
+                            <Text text="{LicensePlate}" />
+                            <Text text="{= ${Yyear} + '. ' + ${Mmonth}}" />
+                            <ObjectStatus
+                                text="{
+                                    path: 'Status',
+                                    formatter: '.formatter.formatStatusText'
+                                }"
+                                state="{
+                                    path: 'Status',
+                                    formatter: '.formatter.formatStatusState'
+                                }"
+                            />
+                            <Text text="{
+                                parts: ['to_TripItemSet'],
+                                formatter: '.formatter.formatItemCount'
+                            }" />
+                            <ObjectNumber
+                                number="{
+                                    path: 'KmBefore',
+                                    type: 'sap.ui.model.type.Integer'
+                                }"
+                                unit="km"
+                            />
+                            <ObjectNumber
+                                number="{
+                                    path: 'KmAfter',
+                                    type: 'sap.ui.model.type.Integer'
+                                }"
+                                unit="km"
+                            />
+                            <Text text="{Note}" />
+                        </cells>
+                    </ColumnListItem>
+                </items>
+            </Table>
+        </content>
+    </Page>
+</mvc:View>

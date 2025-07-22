@@ -1,0 +1,74 @@
+<mvc:View
+    controllerName="tripjournal.tripjournalui.controller.Detail"
+    xmlns="sap.m"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns:f="sap.ui.layout.form"
+>
+    <Page
+        id="detailPage"
+        title="{i18n>detailPageTitle}"
+        showNavButton="true"
+        navButtonPress=".onNavBack"
+    >
+        <ObjectHeader
+            id="detailObjectHeader"
+            responsive="true"
+            title="{LicensePlate}"
+            number="{
+                path: 'GasPrice',
+                formatter: 'sap.ui.format.Number.getCurrencyInstance'
+            }"
+            numberUnit="{GasCurr}"
+        >
+            <attributes>
+                <ObjectAttribute title="{i18n>colDate}" text="{= ${Yyear} + '. ' + ${Mmonth}}" />
+                <ObjectAttribute title="{i18n>colKmBefore}" text="{KmBefore} km" />
+            </attributes>
+        </ObjectHeader>
+        <Table
+            id="tripItemTable"
+            items="{to_TripItemSet}"
+            class="sapUiResponsiveMargin"
+            width="auto"
+        >
+            <headerToolbar>
+                <Toolbar>
+                    <Title text="{i18n>itemsTitle}" level="H2"/>
+                    <ToolbarSpacer />
+                    <Button
+                        icon="sap-icon://add"
+                        tooltip="{i18n>newItemTooltip}"
+                        press=".onOpenCreateItemDialog"
+                    />
+                </Toolbar>
+            </headerToolbar>
+            <columns>
+                <Column><Text text="{i18n>itemColDate}" /></Column>
+                <Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>itemColFrom}" /></Column>
+                <Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>itemColTo}" /></Column>
+                <Column hAlign="End"><Text text="{i18n>itemColDistance}" /></Column>
+                <Column hAlign="End"><Text text="{i18n>itemColCost}" /></Column>
+            </columns>
+            <items>
+                <ColumnListItem>
+                    <cells>
+                        <Text text="{
+                            path: 'Ddate',
+                            type: 'sap.ui.model.type.Date'
+                        }" />
+                        <Text text="{FromAddr}" />
+                        <Text text="{ToAddr}" />
+                        <ObjectNumber number="{Distance}" unit="km" />
+                         <ObjectNumber
+                            number="{
+                                path: 'Cost',
+                                formatter: 'sap.ui.format.Number.getCurrencyInstance'
+                            }"
+                            unit="{Currency}"
+                        />
+                    </cells>
+                </ColumnListItem>
+            </items>
+        </Table>
+    </Page>
+</mvc:View>
