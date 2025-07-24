@@ -1,0 +1,54 @@
+<core:FragmentDefinition
+  xmlns="sap.m"
+  xmlns:core="sap.ui.core"
+  xmlns:f="sap.ui.layout.form"
+  xmlns:layout="sap.ui.layout.form"
+>
+  <Dialog
+    id="createDialog"
+    title="New Trip"
+    stretchOnPhone="true"
+  >
+    <content>
+      <f:SimpleForm id="_IDGenSimpleForm" editable="true" layout="ResponsiveGridLayout" labelSpanL="4" emptySpanL="1">
+        <Label id="_IDGenLabel1346" text="Year"/>
+        <Input id="_IDGenInput" value="{create>/Yyear}" type="Number"/>
+
+        <Label id="_IDGenLabel2" text="Month (MM)"/>
+        <Input id="_IDGenInput1" value="{create>/Mmonth}" placeholder="06"/>
+
+        <Label id="_IDGenLabel3" text="License Plate"/>
+        <Input id="_IDGenInput2" value="{create>/LicensePlate}"/>
+
+        <Label id="_IDGenLabel4" text="KM Start"/>
+        <Input id="_IDGenInput3" value="{create>/KmBefore}" type="Number"/>
+
+        <Label id="_IDGenLabel"  text="KM End"/>
+        <Input id="_IDGenInput6"  value="{create>/KmAfter}" type="Number"/>
+
+        <Label id="_IDGenLabel5" text="Fuel Price"/>
+        <Input id="_IDGenInput4" value="{create>/GasPrice}" type="Number"/>
+
+        <Label id="_IDGenLabel6" text="Currency"/>
+        <Select id="_IDGenSelect" selectedKey="{create>/GasCurr}">
+          <core:Item id="_IDGenItem" key="EUR" text="EUR"/>
+          <core:Item id="_IDGenItem1" key="CNY" text="CNY"/>
+          <!-- add more or bind from ZBNH_CURRENCY value‑help if you have it -->
+        </Select>
+      </f:SimpleForm>
+    </content>
+
+    <beginButton>
+    <Button id="_IDGenButton1"
+        text="Create"
+        press=".onCreateTrip" />
+    </beginButton>
+    <endButton>
+    <Button id="_IDGenButton2"
+        text="Cancel"
+        press=".onCloseCreateDialog" />
+    </endButton>
+
+
+  </Dialog>
+</core:FragmentDefinition>

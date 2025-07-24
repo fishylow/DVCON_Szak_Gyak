@@ -7,7 +7,7 @@
     <Page id="tripJournalPage" title="{i18n>appTitle}">
         <subHeader>
             <Toolbar id="filterBar">
-                <Title text="{i18n>filterBy}" />
+                <Title id="_IDGenTitle" text="{i18n>filterBy}" />
                 <Select
                     id="statusFilter"
                     width="15rem"
@@ -15,7 +15,7 @@
                         path: '/ZbnhStatusSet'
                     }"
                 >
-                    <core:Item key="{Code}" text="{Text}" />
+                    <core:Item id="_IDGenItem2" key="{Code}" text="{Text}" />
                 </Select>
                 <DateRangeSelection
                     id="dateFilter"
@@ -28,13 +28,13 @@
                     placeholder="{i18n>licensePlate}"
                     search=".onFilterTrips"
                 />
-                <ToolbarSpacer />
-                <Button
+                <ToolbarSpacer id="_IDGenToolbarSpacer" />
+                <Button id="_IDGenButton3"
                     text="{i18n>filterButtonText}"
                     press=".onFilterTrips"
                     type="Emphasized"
                 />
-                 <Button
+                 <Button id="_IDGenButton4"
                     text="{i18n>clearFilterButtonText}"
                     press=".onClearFilter"
                 />
@@ -58,9 +58,9 @@
                 width="auto"
             >
                 <headerToolbar>
-                    <Toolbar>
-                        <Title text="{i18n>tripsTitle}" level="H2"/>
-                        <ToolbarSpacer />
+                    <Toolbar id="_IDGenToolbar">
+                        <Title id="_IDGenTitle1" text="{i18n>tripsTitle}" level="H2"/>
+                        <ToolbarSpacer id="_IDGenToolbarSpacer1" />
                         <Button
                             id="newTripButton"
                             icon="sap-icon://add"
@@ -70,23 +70,23 @@
                     </Toolbar>
                 </headerToolbar>
                 <columns>
-                    <Column><Text text="{i18n>colLicensePlate}" /></Column>
-                    <Column><Text text="{i18n>colDate}" /></Column>
-                    <Column minScreenWidth="Tablet" demandPopin="true"><Text text="{i18n>colStatus}" /></Column>
-                    <Column minScreenWidth="Tablet" demandPopin="true" hAlign="End"><Text text="{i18n>colItemCount}" /></Column>
-                    <Column minScreenWidth="Desktop" demandPopin="true" hAlign="End"><Text text="{i18n>colKmBefore}" /></Column>
-                    <Column minScreenWidth="Desktop" demandPopin="true" hAlign="End"><Text text="{i18n>colKmAfter}" /></Column>
-                    <Column minScreenWidth="Desktop" demandPopin="true"><Text text="{i18n>colNote}" /></Column>
+                    <Column id="_IDGenColumn"><Text id="_IDGenText" text="{i18n>colLicensePlate}" /></Column>
+                    <Column id="_IDGenColumn1"><Text id="_IDGenText1" text="{i18n>colDate}" /></Column>
+                    <Column id="_IDGenColumn2" minScreenWidth="Tablet" demandPopin="true"><Text id="_IDGenText2" text="{i18n>colStatus}" /></Column>
+                    <Column id="_IDGenColumn3" minScreenWidth="Tablet" demandPopin="true" hAlign="End"><Text id="_IDGenText3" text="{i18n>colItemCount}" /></Column>
+                    <Column id="_IDGenColumn4" minScreenWidth="Desktop" demandPopin="true" hAlign="End"><Text id="_IDGenText4" text="{i18n>colKmBefore}" /></Column>
+                    <Column id="_IDGenColumn5" minScreenWidth="Desktop" demandPopin="true" hAlign="End"><Text id="_IDGenText5" text="{i18n>colKmAfter}" /></Column>
+                    <Column id="_IDGenColumn6" minScreenWidth="Desktop" demandPopin="true"><Text id="_IDGenText6" text="{i18n>colNote}" /></Column>
                 </columns>
                 <items>
-                    <ColumnListItem
+                    <ColumnListItem id="_IDGenColumnListItem"
                         type="Navigation"
                         press=".onNavToDetails"
                     >
                         <cells>
-                            <Text text="{LicensePlate}" />
-                            <Text text="{= ${Yyear} + '. ' + ${Mmonth}}" />
-                            <ObjectStatus
+                            <Text id="_IDGenText7" text="{LicensePlate}" />
+                            <Text id="_IDGenText8" text="{= ${Yyear} + '. ' + ${Mmonth}}" />
+                            <ObjectStatus id="_IDGenObjectStatus"
                                 text="{
                                     path: 'Status',
                                     formatter: '.formatter.formatStatusText'
@@ -96,25 +96,25 @@
                                     formatter: '.formatter.formatStatusState'
                                 }"
                             />
-                            <Text text="{
+                            <Text id="_IDGenText9" text="{
                                 parts: ['to_TripItemSet'],
                                 formatter: '.formatter.formatItemCount'
                             }" />
-                            <ObjectNumber
+                            <ObjectNumber id="_IDGenObjectNumber"
                                 number="{
                                     path: 'KmBefore',
                                     type: 'sap.ui.model.type.Integer'
                                 }"
                                 unit="km"
                             />
-                            <ObjectNumber
+                            <ObjectNumber id="_IDGenObjectNumber1"
                                 number="{
                                     path: 'KmAfter',
                                     type: 'sap.ui.model.type.Integer'
                                 }"
                                 unit="km"
                             />
-                            <Text text="{Note}" />
+                            <Text id="_IDGenText10" text="{Note}" />
                         </cells>
                     </ColumnListItem>
                 </items>

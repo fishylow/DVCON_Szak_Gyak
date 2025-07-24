@@ -2,8 +2,13 @@ sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/ui/model/Filter",
     "sap/ui/model/FilterOperator",
-    "./../model/formatter"
-], function (Controller, Filter, FilterOperator, formatter) {
+    "./../model/formatter",
+    "sap/ui/core/Fragment",
+    "sap/ui/model/json/JSONModel",
+    "sap/m/MessageToast",
+    "sap/m/MessageBox"
+    
+], function (Controller, Filter, FilterOperator, formatter, Fragment, JSONModel, MessageToast, MessageBox) {
     "use strict";
 
     return Controller.extend("tripjournal.tripjournalui.controller.TripJournal", {
@@ -77,12 +82,76 @@ sap.ui.define([
             oBinding.filter([]);
         },
 
-        /**
-         * Placeholder for opening the 'Create New Trip' dialog.
-         */
         onOpenCreateDialog: function () {
-            // We will implement the dialog and creation logic in the next step.
-            sap.m.MessageToast.show("Create new trip dialog will be opened here.");
+            // Lazy‑load the fragment
+            if (!this._oCreateDialog) {
+              Fragment.load({
+                name: "tripjournal.tripjournalui.view.CreateTrip",
+                controller: this
+              }).then(function (oDialog) {
+                this.getView().addDependent(oDialog);
+      
+                // init JSONModel for the input fields
+                const oData = {
+                  Yyear: new Date().getFullYear(),
+                  Mmonth: ("0" + (new Date().getMonth() + 1)).slice(-2),
+                  LicensePlate: "",
+                  KmBefore: 0,
+                  GasPrice: 0,
+                  GasCurr: "EUR"
+                };
+                const oJSON = new JSONModel(oData);
+                oDialog.setModel(oJSON, "create");
+      
+                this._oCreateDialog = oDialog;
+                oDialog.open();
+              }.bind(this));
+            } else {
+              this._oCreateDialog.open();
+            }
+          },
+      
+          onCloseCreateDialog: function () {
+            this._oCreateDialog.close();
+          },
+      
+          onCreateTrip: function () {
+            // 1. read data from the dialog‑scoped model
+            const oCreate = this._oCreateDialog.getModel("create").getData();
+        
+            const sGasPrice = Number(oCreate.GasPrice || 0).toFixed(3);
+            // 2. compose payload
+            const oPayload = {
+                Username:     "BNEDER",          // ideiglenesen sajat userbe tolom bele mert amugy nem mukodik
+                Yyear:        Number(oCreate.Yyear),
+                Mmonth:       oCreate.Mmonth,
+                LicensePlate: oCreate.LicensePlate,
+                KmBefore:     Number(oCreate.KmBefore),
+                KmAfter:      Number(oCreate.KmAfter),
+                GasPrice:     sGasPrice,
+                GasCurr:      oCreate.GasCurr,
+                Status:       "N",
+                Note:         ""
+            };
+        
+            // 3. create header
+            this.getView().getModel().create("/TripHeaderSet", oPayload, {
+                success: function () {
+                    sap.m.MessageToast.show("New trip created");
+                    this._oCreateDialog.close();
+                    // refresh header list
+                    this.byId("tripHeaderTable")
+                        .getBinding("items")
+                        .refresh();
+                }.bind(this),
+                error: function (oErr) {
+                    sap.m.MessageBox.error(
+                        sap.ui.core.format.MessageFormat.format(
+                            "Creation failed: {0}", [oErr.message || oErr.responseText]
+                        )
+                    );
+                }
+            });
         }
-    });
-});
+        });
+      });
