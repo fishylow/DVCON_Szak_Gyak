@@ -44,6 +44,8 @@
             <Table
                 id="tripHeaderTable"
                 inset="false"
+                mode="MultiSelect"
+                selectionChange=".onSelectionChange"
                 items="{
                     path: '/TripHeaderSet',
                     parameters: {
@@ -60,7 +62,9 @@
                 <headerToolbar>
                     <Toolbar id="_IDGenToolbar">
                         <Title id="_IDGenTitle1" text="{i18n>tripsTitle}" level="H2"/>
-                        <ToolbarSpacer id="_IDGenToolbarSpacer1" />
+                        <ToolbarSpacer id="_IDGenToolbarSpacer1"/>
+                        <Button id="editHeaderBtn"  icon="sap-icon://edit"
+                                enabled="false" press=".onOpenEditHeaderDialog"/>
                         <Button
                             id="newTripButton"
                             icon="sap-icon://add"

@@ -82,6 +82,50 @@ sap.ui.define([
             oBinding.filter([]);
         },
 
+        onSelectionChange: function (oEvt) {
+            const aSel = oEvt.getSource().getSelectedItems();
+            this.byId("editHeaderBtn").setEnabled(aSel.length === 1);   // single‑row edit
+        },
+
+        onOpenEditHeaderDialog: async function () {
+            if (!this._oEditDialog) {
+              const oDlg = await Fragment.load({
+                name: "tripjournal.tripjournalui.view.EditHeader",       // NEW
+                controller: this
+              });                                                        // Fragment.load best‑practice
+              this.getView().addDependent(oDlg);
+              this._oEditDialog = oDlg;
+            }
+          
+            // pre‑fill JSON model with the ONLY editable fields
+            const oCtx   = this.byId("tripHeaderTable").getSelectedItem().getBindingContext();
+            const oData  = Object.assign({}, oCtx.getObject());
+            const oJSON  = new JSONModel(oData);
+            this._oEditDialog.setModel(oJSON, "edit");
+            this._oEditDialog.open();
+        },
+
+        onUpdateHeader: function () {
+            const oData = this._oEditDialog.getModel("edit").getData();
+            const sPath = this.byId("tripHeaderTable")
+                             .getSelectedItem().getBindingContext().getPath();
+          
+            this.getView().getModel().update(
+              sPath,
+              {
+                KmBefore : Number(oData.KmBefore),
+                GasPrice : Number(oData.GasPrice).toFixed(3),
+                GasCurr  : oData.GasCurr
+              },
+              {
+                success : () => {
+                  MessageToast.show("Header updated");                   // update via OData
+                  this._oEditDialog.close();
+                },
+                error   : oErr => MessageBox.error(oErr.message)
+              });
+        },          
+
         onOpenCreateDialog: function () {
             // Lazy‑load the fragment
             if (!this._oCreateDialog) {
@@ -122,7 +166,7 @@ sap.ui.define([
             const sGasPrice = Number(oCreate.GasPrice || 0).toFixed(3);
             // 2. compose payload
             const oPayload = {
-                Username:     "BNEDER",          // ideiglenesen sajat userbe tolom bele mert amugy nem mukodik
+                Username:     "BNEDER",          // ideiglenesen sajat userbe rakom
                 Yyear:        Number(oCreate.Yyear),
                 Mmonth:       oCreate.Mmonth,
                 LicensePlate: oCreate.LicensePlate,

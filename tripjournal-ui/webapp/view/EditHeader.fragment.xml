@@ -1,0 +1,26 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core" xmlns:f="sap.ui.layout.form">
+  <Dialog title="Edit Header" id="editHeaderDialog">
+    <content>
+      <f:SimpleForm id="_IDGenSimpleForm1" editable="true" layout="ResponsiveGridLayout">
+        <Label id="_IDGenLabel1" text="KM Start"/>
+        <Input id="_IDGenInput5" value="{edit>/KmBefore}" type="Number"/>
+
+        <Label id="_IDGenLabel7" text="Fuel Price"/>
+        <Input id="_IDGenInput7" value="{edit>/GasPrice}" type="Number"/>
+
+        <Label id="_IDGenLabel8" text="Currency"/>
+        <Select id="_IDGenSelect1" selectedKey="{edit>/GasCurr}">
+          <core:Item id="_IDGenItem4" key="EUR" text="EUR"/>
+          <core:Item id="_IDGenItem5" key="HUF" text="HUF"/>
+        </Select>
+      </f:SimpleForm>
+    </content>
+
+    <beginButton>
+      <Button id="_IDGenButton5" text="Save" press=".onUpdateHeader"/>
+    </beginButton>
+    <endButton>
+      <Button id="_IDGenButton6" text="Cancel" press="editHeaderDialog.close"/>
+    </endButton>
+  </Dialog>
+</core:FragmentDefinition>

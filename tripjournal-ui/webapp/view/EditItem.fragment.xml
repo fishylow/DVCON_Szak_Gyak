@@ -1,0 +1,30 @@
+
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core" xmlns:f="sap.ui.layout.form">
+  <Dialog id="_IDGenDialog1" title="Trip Item">
+    <content>
+      <f:SimpleForm id="_IDGenSimpleForm3">
+        <Label id="_IDGenLabel14" text="Date"/>
+        <DatePicker id="_IDGenDatePicker1" dateValue="{editItem>/Ddate}" displayFormat="yyyy.MM.dd"/>
+
+        <Label id="_IDGenLabel15" text="From"/>
+        <Input id="_IDGenInput11" value="{editItem>/FromAddr}"/>
+
+        <Label id="_IDGenLabel16" text="To"/>
+        <Input id="_IDGenInput12" value="{editItem>/ToAddr}"/>
+
+        <Label id="_IDGenLabel17" text="Distance (km)"/>
+        <Input id="_IDGenInput13" value="{editItem>/Distance}" type="Number"/>
+
+        <Label id="_IDGenLabel18" text="Note"/>
+        <TextArea id="_IDGenTextArea1" value="{editItem>/Note}"/>
+      </f:SimpleForm>
+    </content>
+
+    <beginButton>
+      <Button id="_IDGenButton10" text="Save" press=".onUpdateItem"/>
+    </beginButton>
+    <endButton>
+      <Button id="_IDGenButton11" text="Cancel" press=".OnCancelItemDialog"/>
+    </endButton>
+  </Dialog>
+</core:FragmentDefinition>

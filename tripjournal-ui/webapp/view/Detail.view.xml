@@ -29,17 +29,19 @@
             id="tripItemTable"
             items="{to_TripItemSet}"
             class="sapUiResponsiveMargin"
+            mode="MultiSelect"
+            selectionChange=".onItemSelectionChange"
             width="auto"
         >
             <headerToolbar>
-                <Toolbar id="_IDGenToolbar1">
-                    <Title id="_IDGenTitle2" text="{i18n>itemsTitle}" level="H2"/>
-                    <ToolbarSpacer id="_IDGenToolbarSpacer2" />
-                    <Button id="_IDGenButton"
-                        icon="sap-icon://add"
-                        tooltip="{i18n>newItemTooltip}"
-                        press=".onOpenCreateItemDialog"
-                    />
+                <Toolbar id="_IDGenToolbar2">
+                <Title id="_IDGenTitle2" text="{i18n>itemsTitle}" level="H2"/>
+                <ToolbarSpacer id="_IDGenToolbarSpacer2"/>
+                <Button id="_IDGenButton" icon="sap-icon://add"    press=".onOpenCreateItemDialog"/>
+                <Button id="editItemBtn"  icon="sap-icon://edit"  enabled="false"
+                        press=".onOpenEditItemDialog"/>
+                <Button id="delItemBtn"   icon="sap-icon://delete" type="Negative"
+                        enabled="false" press=".onDeleteSelectedItems"/>
                 </Toolbar>
             </headerToolbar>
             <columns>
