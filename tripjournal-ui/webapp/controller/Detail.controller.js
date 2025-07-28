@@ -44,7 +44,7 @@ sap.ui.define([
             this.getView().bindElement({
                 path: "/" + sObjectPath,
                 parameters: {
-                    expand: "to_TripItemSet"
+                    $expand: "to_TripItemSet"
                 }
             });
         },

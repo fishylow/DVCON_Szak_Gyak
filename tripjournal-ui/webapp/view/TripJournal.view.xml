@@ -44,7 +44,7 @@
             <Table
                 id="tripHeaderTable"
                 inset="false"
-                mode="SingleSelect"
+                mode="SingleSelectLeft"
                 selectionChange=".onSelectionChange"
                 items="{
                     path: '/TripHeaderSet',

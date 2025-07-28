@@ -39,17 +39,9 @@ sap.ui.define([], function () {
                     return sStatus;
             }
         },
-
-        /**
-         * Counts the number of items in the expanded navigation property.
-         * @param {object} oNavProperty The navigation property object from the binding
-         * @returns {number} The number of items
-         */
+        
         formatItemCount: function (oNavProperty) {
-            if (oNavProperty && oNavProperty.results) {
-                return oNavProperty.results.length;
-            }
-            return 0;
-        }
+            return oNavProperty.length; 
+        },
     };
 });

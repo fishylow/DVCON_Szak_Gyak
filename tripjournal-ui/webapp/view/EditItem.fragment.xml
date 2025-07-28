@@ -24,7 +24,7 @@
       <Button id="_IDGenButton10" text="Save" press=".onUpdateItem"/>
     </beginButton>
     <endButton>
-      <Button id="_IDGenButton11" text="Cancel" press=".OnCancelItemDialog"/>
+      <Button id="_IDGenButton11" text="Cancel" press=".onCancelItemDialog"/>
     </endButton>
   </Dialog>
 </core:FragmentDefinition>

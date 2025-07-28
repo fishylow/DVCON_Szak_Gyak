@@ -158,7 +158,11 @@ sap.ui.define([
           onCloseCreateDialog: function () {
             this._oCreateDialog.close();
           },
-      
+
+          onCancelHeaderDialog: function (oEvt) {
+            oEvt.getSource().getParent().close();
+          },
+        
           onCreateTrip: function () {
             // 1. read data from the dialog‑scoped model
             const oCreate = this._oCreateDialog.getModel("create").getData();

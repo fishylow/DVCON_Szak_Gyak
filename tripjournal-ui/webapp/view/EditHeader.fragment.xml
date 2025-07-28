@@ -20,7 +20,7 @@
       <Button id="_IDGenButton5" text="Save" press=".onUpdateHeader"/>
     </beginButton>
     <endButton>
-      <Button id="_IDGenButton6" text="Cancel" press="editHeaderDialog.close"/>
+      <Button id="_IDGenButton6" text="Cancel" press=".onCancelHeaderDialog"/>
     </endButton>
   </Dialog>
 </core:FragmentDefinition>
