@@ -166,7 +166,7 @@ sap.ui.define([
             oEvt.getSource().getParent().close();
           },
           
-          // --- delete
+          // --- overcomplicated delete function, but it works
           onDeleteSelectedItems: function () {
             const aItems = this.byId("tripItemTable").getSelectedItems();
             if (aItems.length === 0) { return; }
@@ -175,16 +175,35 @@ sap.ui.define([
               onClose: sBtn => {
                 if (sBtn !== MessageBox.Action.OK) { return; }
           
-                const oModel = this.getView().getModel();
-                const aPromises = aItems.map(oIt => new Promise((res, rej) => {
-                  oModel.remove(oIt.getBindingContext().getPath(), {success: res, error: rej});
-                }));
+                const oModel   = this.getView().getModel();
           
-                Promise.allSettled(aPromises).then(() => {
-                  MessageToast.show("Deletion finished");
+                /* make one batch group */
+                const sGroup   = "massDel_" + Date.now();
+                oModel.setDeferredBatchGroups([sGroup]);            
+          
+                /* schedule each DELETE with its own change‑set */
+                aItems.forEach((oIt, idx) => {
+                  oModel.remove(
+                    oIt.getBindingContext().getPath(),
+                    {
+                      groupId     : sGroup,                         
+                      changeSetId : "cs" + idx                      
+                    }
+                  );
+                });
+          
+                /* send the batch in one go */
+                oModel.submitChanges({
+                  groupId : sGroup,                                
+                  success : () => {
+                    MessageToast.show("Deletion finished");        
+                    this.byId("tripItemTable").removeSelections();
+                    this.byId("delItemBtn").setEnabled(false);
+                  },
+                  error   : oErr => MessageBox.error(oErr.message)
                 });
               }
             });
-        },
+          },
     });
 });
