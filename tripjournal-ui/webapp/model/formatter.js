@@ -34,12 +34,12 @@ sap.ui.define([], function () {
                 case 'R':
                     return "Rejected";
                 case 'N':
-                    return "New";
+                    return "Nyitott";
                 default:
                     return sStatus;
             }
         },
-        
+
         formatItemCount: function (oNavProperty) {
             return oNavProperty.length; 
         },

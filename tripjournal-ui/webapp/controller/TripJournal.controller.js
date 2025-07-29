@@ -21,7 +21,6 @@ sap.ui.define([
         /**Navigation on click to the Details page. */
         onNavToDetails: function (oEvent) {
             const oContext = oEvent.getSource().getBindingContext();
-            // It's safer to get properties from the model object
             const oObject = oContext.getObject();
         
             this.getOwnerComponent().getRouter().navTo("RouteDetail", {
@@ -54,11 +53,6 @@ sap.ui.define([
             if (sLicensePlate) {
                 aFilters.push(new Filter("LicensePlate", FilterOperator.Contains, sLicensePlate));
             }
-
-            // Note: Filtering by a combined Year/Month from a DateRangeSelection
-            // can be complex and depends on backend capabilities.
-            // This is a simplified example. A robust solution might require backend changes
-            // or more complex client-side logic.
             if (dFromDate && dToDate) {
                  // For simplicity, we'll filter by Year for now.
                  // A proper implementation would need to handle year and month ranges.
@@ -84,15 +78,15 @@ sap.ui.define([
 
         onSelectionChange: function (oEvt) {
             const aSel = oEvt.getSource().getSelectedItems();
-            this.byId("editHeaderBtn").setEnabled(aSel.length === 1);   // single‑row edit
+            this.byId("editHeaderBtn").setEnabled(aSel.length === 1);   
         },
 
         onOpenEditHeaderDialog: async function () {
             if (!this._oEditDialog) {
               const oDlg = await Fragment.load({
-                name: "tripjournal.tripjournalui.view.EditHeader",       // NEW
+                name: "tripjournal.tripjournalui.view.EditHeader",       
                 controller: this
-              });                                                        // Fragment.load best‑practice
+              });                                                       
               this.getView().addDependent(oDlg);
               this._oEditDialog = oDlg;
             }
@@ -175,7 +169,7 @@ sap.ui.define([
                 Mmonth:       oCreate.Mmonth,
                 LicensePlate: oCreate.LicensePlate,
                 KmBefore:     Number(oCreate.KmBefore),
-                KmAfter:      Number(oCreate.KmAfter),
+                KmAfter:      Number(oCreate.KmBefore),
                 GasPrice:     sGasPrice,
                 GasCurr:      oCreate.GasCurr,
                 Status:       "N",

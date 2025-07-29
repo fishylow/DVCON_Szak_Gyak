@@ -23,9 +23,6 @@
         <Label id="_IDGenLabel4" text="KM Start"/>
         <Input id="_IDGenInput3" value="{create>/KmBefore}" type="Number"/>
 
-        <Label id="_IDGenLabel"  text="KM End"/>
-        <Input id="_IDGenInput6"  value="{create>/KmAfter}" type="Number"/>
-
         <Label id="_IDGenLabel5" text="Fuel Price"/>
         <Input id="_IDGenInput4" value="{create>/GasPrice}" type="Number"/>
 
