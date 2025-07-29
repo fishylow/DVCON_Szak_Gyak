@@ -12,16 +12,20 @@ sap.ui.define([
     "sap/ui/core/Fragment",          
     "sap/m/MessageToast",            
     "sap/m/MessageBox",              
-    "sap/ui/model/json/JSONModel"    
+    "sap/ui/model/json/JSONModel" ,  
+    "./../model/formatter" 
 ], function (Controller,
     History,
     Fragment,             
     MessageToast,
     MessageBox,
-    JSONModel) {
+    JSONModel,
+    formatter) {
     "use strict";
 
     return Controller.extend("tripjournal.tripjournalui.controller.Detail", {
+        formatter: formatter,
+    
         onInit: function () {
             const oRouter = this.getOwnerComponent().getRouter();
             oRouter.getRoute("RouteDetail").attachPatternMatched(this._onObjectMatched, this);

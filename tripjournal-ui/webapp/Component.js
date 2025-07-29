@@ -20,7 +20,7 @@ sap.ui.define([
             this.setModel(models.createDeviceModel(), "device");
 
             // enable routing
-            this.getRouter().initialize();
+            this.getRouter().initialize();    
         }
     });
 });

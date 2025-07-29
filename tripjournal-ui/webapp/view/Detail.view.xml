@@ -23,6 +23,12 @@
             <attributes>
                 <ObjectAttribute id="_IDGenObjectAttribute1" title="{i18n>colDate}" text="{= ${Yyear} + '. ' + ${Mmonth}}" />
                 <ObjectAttribute id="_IDGenObjectAttribute2" title="{i18n>colKmBefore}" text="{KmBefore} km" />
+                <ObjectAttribute id="_IDGenObjectAttribute3"
+                    title="{i18n>colKmAfter}"
+                    text="{
+                        parts: ['KmBefore','to_TripItemSet'],
+                        formatter: '.formatter.formatKmAfter'
+                    } km"/>
             </attributes>
         </ObjectHeader>
         <Table
@@ -59,8 +65,14 @@
                             path: 'Ddate',
                             type: 'sap.ui.model.type.Date'
                         }" />
-                        <Text id="_IDGenText17" text="{FromAddr}" />
-                        <Text id="_IDGenText18" text="{ToAddr}" />
+                        <Text id="_IDGenText18" text="{
+                            path: 'FromAddr',
+                            type: 'sap.ui.model.type.Integer'
+                        }"/>
+                        <Text id="_IDGenText21" text="{
+                            path: 'ToAddr',
+                            type: 'sap.ui.model.type.Integer'
+                        }"/>
                         <ObjectNumber id="_IDGenObjectNumber2" number="{Distance}" unit="km" />
                          <ObjectNumber id="_IDGenObjectNumber3"
                             number="{

@@ -15,7 +15,7 @@ sap.ui.define([
         formatter: formatter,
 
         onInit: function () {
-            // Future initialization logic will go here
+          
         },
 
         /**Navigation on click to the Details page. */
@@ -101,6 +101,7 @@ sap.ui.define([
 
         onUpdateHeader: function () {
             const oData = this._oEditDialog.getModel("edit").getData();
+            oData.setAutoExpandSelect(true);
             const sPath = this.byId("tripHeaderTable")
                              .getSelectedItem().getBindingContext().getPath();
           

@@ -47,15 +47,13 @@
                 mode="SingleSelectLeft"
                 selectionChange=".onSelectionChange"
                 items="{
-                    path: '/TripHeaderSet',
-                    parameters: {
-                        expand: 'to_TripItemSet'
+                    path : '/TripHeaderSet',
+                    parameters : {
+                        expand  : 'to_TripItemSet',                              
+                        select  : 'Username,Yyear,Mmonth,LicensePlate,KmBefore,Status,Note,to_TripItemSet/Distance'
                     },
-                    sorter: {
-                        path: 'Yyear',
-                        descending: true
-                    }
-                }"
+                        sorter : { path : 'Yyear', descending : true }
+                    }"
                 class="sapUiResponsiveMargin"
                 width="auto"
             >
@@ -113,11 +111,11 @@
                             />
                             <ObjectNumber id="_IDGenObjectNumber1"
                                 number="{
-                                    path: 'KmAfter',
-                                    type: 'sap.ui.model.type.Integer'
+                                    parts: ['KmBefore','to_TripItemSet'],
+                                    formatter: '.formatter.formatKmAfter'
                                 }"
-                                unit="km"
-                            />
+                                unit="km"/>
+
                             <Text id="_IDGenText10" text="{Note}" />
                         </cells>
                     </ColumnListItem>

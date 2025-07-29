@@ -1,6 +1,7 @@
 sap.ui.define([], function () {
     "use strict";
 
+    function _number(x) { return Number(x) || 0; }
     return {
         /**
          * Formats the status code to a semantic color state.
@@ -43,5 +44,16 @@ sap.ui.define([], function () {
         formatItemCount: function (oNavProperty) {
             return oNavProperty.length; 
         },
+
+        formatKmAfter(iKmBefore, aKeys) {
+			let total = _number(iKmBefore);
+			const oModel = this.getOwnerComponent().getModel();
+			(aKeys || []).forEach(sKey => {
+				const sPath = "/" + sKey;                   
+				total += _number(oModel.getProperty(sPath + "/Distance"));
+			});
+
+			return total;
+		},
     };
 });
