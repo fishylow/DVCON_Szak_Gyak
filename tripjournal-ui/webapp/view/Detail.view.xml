@@ -29,6 +29,8 @@
                         parts: ['KmBefore','to_TripItemSet'],
                         formatter: '.formatter.formatKmAfter'
                     } km"/>
+                <ObjectAttribute id="_IDGenObjectAttribute4" title="{i18n>consumption}" text="{summary>/Gasmilage} l/100 km"/>
+                <ObjectAttribute id="_IDGenObjectAttribute5" title="{i18n>totalCost}"  text="{summary>/TotalCost} {GasCurr}"/>
             </attributes>
         </ObjectHeader>
         <Table

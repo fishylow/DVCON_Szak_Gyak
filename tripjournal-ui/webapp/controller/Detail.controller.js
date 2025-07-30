@@ -17,8 +17,7 @@ sap.ui.define([
     "sap/ui/core/routing/History",
     "sap/ui/core/Fragment",          
     "sap/m/MessageToast",            
-    "sap/m/MessageBox", 
-    "sap/m/ObjectAttribute",             
+    "sap/m/MessageBox",          
     "sap/ui/model/json/JSONModel" ,  
     "./../model/formatter" 
 ], function (Controller,
@@ -26,10 +25,10 @@ sap.ui.define([
     Fragment,             
     MessageToast,
     MessageBox,
-    ObjectAttribute,
     JSONModel,
     formatter) {
     "use strict";
+    const SUM_PATH = "summary";
 
     return Controller.extend("tripjournal.tripjournalui.controller.Detail", {
         formatter: formatter,
@@ -37,26 +36,45 @@ sap.ui.define([
         onInit: function () {
             const oRouter = this.getOwnerComponent().getRouter();
             oRouter.getRoute("RouteDetail").attachPatternMatched(this._onObjectMatched, this);
+            this.getView().setModel(new JSONModel({ Gasmilage : 0, TotalCost : 0 }), SUM_PATH);
         },
 
-      _onObjectMatched: function (oEvent) {
-        const sUsername     = "BNEDER";
-        const sYear         = oEvent.getParameter("arguments").year;
-        const sMonth        = oEvent.getParameter("arguments").month;
-        const sLicensePlate = oEvent.getParameter("arguments").licensePlate;
-
-        const sObjectPath = this.getView().getModel().createKey("TripHeaderSet", {
-            Username     : sUsername,
-            Yyear        : sYear,
-            Mmonth       : sMonth,
-            LicensePlate : sLicensePlate
-        });
-
-        this.getView().bindElement({
-            path       : "/" + sObjectPath,
-            parameters : { $expand : "to_TripItemSet" },
-        });
-    },
+        _onObjectMatched: function (oEvent) {
+          const sUsername     = "BNEDER";
+          const sYear         = oEvent.getParameter("arguments").year;
+          const sMonth        = oEvent.getParameter("arguments").month;
+          const sLicensePlate = oEvent.getParameter("arguments").licensePlate;
+      
+          const sKey = this.getView().getModel().createKey("TripHeaderSet", {
+              Username : sUsername, Yyear : sYear, Mmonth : sMonth, LicensePlate : sLicensePlate
+          });
+          const sHdrPath = "/" + sKey;
+      
+          // bind header+items as before
+          this.getView().bindElement({ path : sHdrPath, parameters : { $expand : "to_TripItemSet" } });
+      
+          // once metadata is ready, fetch header (with items) + car, then fill the helper model
+          const oModel   = this.getView().getModel();
+          const oSum     = this.getView().getModel(SUM_PATH);
+      
+          oModel.metadataLoaded().then(() => {
+      
+              // ③‑a  read header incl. all items so we can aggregate the cost
+              oModel.read(sHdrPath, {
+                  urlParameters : { "$expand" : "to_TripItemSet" },
+                  success : oHdr => {
+                    const aItems = (oHdr.to_TripItemSet && oHdr.to_TripItemSet.results) || [];
+                    const tot    = aItems.reduce((s, it) => s + Number(it.Cost || 0), 0).toFixed(2);
+                      oSum.setProperty("/TotalCost", tot);
+                  }
+              });
+      
+              // ③‑b  read the car once to get the consumption
+              oModel.read("/ZbnhCarSet('" + sLicensePlate + "')", {
+                  success : oCar => oSum.setProperty("/Gasmilage", oCar.Gasmilage)
+              });
+          });
+      },
 
         onNavBack: function () {
             const oHistory = History.getInstance();
