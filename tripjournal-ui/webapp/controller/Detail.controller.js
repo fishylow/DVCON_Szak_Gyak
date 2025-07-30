@@ -1,17 +1,24 @@
 
-/** returns a zero‑padded 10‑digit string, collision‑safe inside one browser tab */
+/** returns a zero‑padded 10‑digit string */
 function getBatchId() {
     const timePortion = (Date.now() % 1e8).toString().padStart(8, "0"); // 8 digits
     const rndPortion  = Math.floor(Math.random() * 90 + 10).toString(); // 2 digits
     return timePortion + rndPortion;                                     // 10 digits
   }
 
+/** calculates trip cost (to 3 decimals) */
+function calcCost(distanceKm, lPer100Km, fuelPrice) {
+  const qty = Number(distanceKm) / 100 * Number(lPer100Km) ;            // litres consumed
+  return +(qty * Number(fuelPrice)).toFixed(3);                        // money (scale 3)
+}
+
 sap.ui.define([
     "sap/ui/core/mvc/Controller",
     "sap/ui/core/routing/History",
     "sap/ui/core/Fragment",          
     "sap/m/MessageToast",            
-    "sap/m/MessageBox",              
+    "sap/m/MessageBox", 
+    "sap/m/ObjectAttribute",             
     "sap/ui/model/json/JSONModel" ,  
     "./../model/formatter" 
 ], function (Controller,
@@ -19,6 +26,7 @@ sap.ui.define([
     Fragment,             
     MessageToast,
     MessageBox,
+    ObjectAttribute,
     JSONModel,
     formatter) {
     "use strict";
@@ -31,27 +39,24 @@ sap.ui.define([
             oRouter.getRoute("RouteDetail").attachPatternMatched(this._onObjectMatched, this);
         },
 
-        _onObjectMatched: function (oEvent) {
-            const sUsername = oEvent.getParameter("arguments").username;
-            const sYear = oEvent.getParameter("arguments").year;
-            const sMonth = oEvent.getParameter("arguments").month;
-            const sLicensePlate = oEvent.getParameter("arguments").licensePlate;
+      _onObjectMatched: function (oEvent) {
+        const sUsername     = "BNEDER";
+        const sYear         = oEvent.getParameter("arguments").year;
+        const sMonth        = oEvent.getParameter("arguments").month;
+        const sLicensePlate = oEvent.getParameter("arguments").licensePlate;
 
-            // Construct the binding path from the key parameters
-            const sObjectPath = this.getView().getModel().createKey("TripHeaderSet", {
-                Username: sUsername,
-                Yyear: sYear,
-                Mmonth: sMonth,
-                LicensePlate: sLicensePlate
-            });
+        const sObjectPath = this.getView().getModel().createKey("TripHeaderSet", {
+            Username     : sUsername,
+            Yyear        : sYear,
+            Mmonth       : sMonth,
+            LicensePlate : sLicensePlate
+        });
 
-            this.getView().bindElement({
-                path: "/" + sObjectPath,
-                parameters: {
-                    $expand: "to_TripItemSet"
-                }
-            });
-        },
+        this.getView().bindElement({
+            path       : "/" + sObjectPath,
+            parameters : { $expand : "to_TripItemSet" },
+        });
+    },
 
         onNavBack: function () {
             const oHistory = History.getInstance();
@@ -82,7 +87,7 @@ sap.ui.define([
                 // header fields reused, other fields blank
                 const oHdr = this.getView().getBindingContext().getObject();
                 const oData = {
-                  Username     : oHdr.Username,
+                  Username     : "BNEDER",
                   Yyear        : oHdr.Yyear,
                   Mmonth       : oHdr.Mmonth,
                   LicensePlate : oHdr.LicensePlate,
@@ -102,34 +107,52 @@ sap.ui.define([
           },
 
           onCreateItem: function () {
-            const oRaw  = this._oCreateItemDlg.getModel("createItem").getData();
-          
+            const oRaw = this._oCreateItemDlg.getModel("createItem").getData();
             if (oRaw.FromAddr === oRaw.ToAddr) {
-              return MessageBox.error("From and To cannot be identical.");
+                return MessageBox.error("From and To cannot be identical.");
             }
-          
-            const oPayload = {
-              Username     : oRaw.Username,
-              Yyear        : Number(oRaw.Yyear),
-              Mmonth       : oRaw.Mmonth,
-              LicensePlate : oRaw.LicensePlate,
-              Batchid      : getBatchId(),   
-              FromAddr     : Number(oRaw.FromAddr),
-              ToAddr       : Number(oRaw.ToAddr),
-              Ddate        : oRaw.Ddate.toISOString().split("T")[0] + "T00:00:00",
-              Distance     : Number(oRaw.Distance),
-              Note         : oRaw.Note
-            };                                                      // numeric cast fixes offset‑error
-          
-            this.getView().getModel().create("/TripItemSet", oPayload, {
-              success: () => {
-                MessageToast.show("Item created");
-                this._oCreateItemDlg.close();
-                this.byId("tripItemTable").getBinding("items").refresh();
-              },
-              error  : oErr => MessageBox.error(oErr.message)
+
+            /* header values (fuel price / currency) */
+            const oHdr   = this.getView().getBindingContext().getObject();
+            const oModel = this.getView().getModel();
+
+            /* fetch mileage for the selected car */
+            const sCarPath = "/" + oModel.createKey("ZbnhCarSet", {
+                LicensePlate: oHdr.LicensePlate
             });
-          },
+
+            oModel.read(sCarPath, {
+                success : oCar => {
+                    const fGasmilage = Number(oCar.Gasmilage) || 0;
+                    const fCost      = calcCost(oRaw.Distance, fGasmilage, oHdr.GasPrice);
+
+                    const oPayload = {
+                        Username     : "BNEDER",
+                        Yyear        : Number(oRaw.Yyear),
+                        Mmonth       : oRaw.Mmonth,
+                        LicensePlate : oRaw.LicensePlate,
+                        Batchid      : getBatchId(),
+                        FromAddr     : Number(oRaw.FromAddr),
+                        ToAddr       : Number(oRaw.ToAddr),
+                        Ddate        : oRaw.Ddate.toISOString().split("T")[0] + "T00:00:00",
+                        Distance     : Number(oRaw.Distance),
+                        Cost         : String(fCost),
+                        Currency     : oHdr.GasCurr,
+                        Note         : oRaw.Note
+                    };
+
+                    oModel.create("/TripItemSet", oPayload, {
+                        success : () => {
+                            MessageToast.show("Item created");
+                            this._oCreateItemDlg.close();
+                            this.byId("tripItemTable").getBinding("items").refresh();
+                        },
+                        error   : oErr => MessageBox.error(oErr.message)
+                    });
+                },
+                error   : oErr => MessageBox.error(oErr.message)
+            });
+        },
 
         onOpenEditItemDialog: async function () {
             if (!this._oEditItemDlg) {
@@ -147,24 +170,42 @@ sap.ui.define([
         },
 
         onUpdateItem: function () {
-            const oRaw   = this._oEditItemDlg.getModel("editItem").getData();
-            const sPath  = this.byId("tripItemTable").getSelectedItem().getBindingContext().getPath();
-          
-            const oPayload = Object.assign({}, oRaw, {
-              FromAddr : Number(oRaw.FromAddr),
-              ToAddr   : Number(oRaw.ToAddr),
-              Distance : Number(oRaw.Distance)
-            });
-          
-            this.getView().getModel().update(sPath, oPayload, {
-              merge  : true,
-              success: () => {
-                MessageToast.show("Item updated");
-                this._oEditItemDlg.close();
+          const oRaw  = this._oEditItemDlg.getModel("editItem").getData();
+          const sPath = this.byId("tripItemTable")
+                           .getSelectedItem().getBindingContext().getPath();
+
+          /* header values (fuel price / currency) */
+          const oHdr   = this.getView().getBindingContext().getObject();
+          const oModel = this.getView().getModel();
+          const sCarPath = "/" + oModel.createKey("ZbnhCarSet", {
+              LicensePlate: oHdr.LicensePlate
+          });
+
+          oModel.read(sCarPath, {
+              success : oCar => {
+                  const fGasmilage = Number(oCar.Gasmilage) || 0;
+                  const fCost      = calcCost(oRaw.Distance, fGasmilage, oHdr.GasPrice);
+
+                  const oPayload = Object.assign({}, oRaw, {
+                      FromAddr : Number(oRaw.FromAddr),
+                      ToAddr   : Number(oRaw.ToAddr),
+                      Distance : Number(oRaw.Distance),
+                      Cost     : String(fCost),
+                      Currency : oHdr.GasCurr
+                  });
+
+                  oModel.update(sPath, oPayload, {
+                      merge   : true,
+                      success : () => {
+                          MessageToast.show("Item updated");
+                          this._oEditItemDlg.close();
+                      },
+                      error   : oErr => MessageBox.error(oErr.message)
+                  });
               },
-              error  : oErr => MessageBox.error(oErr.message)
-            });
-          },
+              error   : oErr => MessageBox.error(oErr.message)
+          });
+      },
 
           onCancelItemDialog: function (oEvt) {
             oEvt.getSource().getParent().close();
