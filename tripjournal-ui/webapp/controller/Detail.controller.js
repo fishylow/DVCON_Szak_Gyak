@@ -268,5 +268,122 @@ sap.ui.define([
               }
             });
           },
+
+          /************  Address value‑help  ************/
+          async onAddrValueHelpRequest(oEvt) {
+            this._oAddrInput   = oEvt.getSource();                       // remember triggering field
+            const oBind = this._oAddrInput.getBinding("value");
+            this._addrPath  = oBind ? oBind.getPath() : "/FromAddr";
+            this._addrModel = oBind ? oBind.getModel() : null; // FromAddr or ToAddr
+
+            // Lazy‑load dialog once
+            if (!this._oAddrVHD) {
+              this._oAddrVHD = await sap.ui.core.Fragment.load({
+                name      : "tripjournal.tripjournalui.view.AddressValueHelpDialog",
+                controller: this
+              });
+              this.getView().addDependent(this._oAddrVHD);
+              this._oAddrVHD.setSupportMultiselect(false);
+
+              /* bind the internal table AFTER it is created */
+              this._oAddrVHD.getTableAsync().then(function (oTable) {
+                oTable.setModel(this.getView().getModel()); // OData v2 model
+
+                if (oTable.bindRows) {
+                  this._bindAddrRows(oTable);   // desktop
+                } else {
+                  this._bindAddrItems(oTable);  // phone / tablet
+                }
+              }.bind(this));
+            }
+            this._oAddrVHD.open();
+          },
+
+          /***** table column helpers *****/
+          _bindAddrRows: function (oTable) {
+            // sap.ui.table.Table
+            oTable.addColumn(new sap.ui.table.Column({label:"ID",          template:new sap.m.Label({text:"{Id}"})}));
+            oTable.addColumn(new sap.ui.table.Column({label:"Name",        template:new sap.m.Label({text:"{Name}"})}));
+            oTable.addColumn(new sap.ui.table.Column({label:"City",        template:new sap.m.Label({text:"{City}"})}));
+            oTable.addColumn(new sap.ui.table.Column({label:"Post Code",   template:new sap.m.Label({text:"{PostCode}"})}));
+            oTable.bindRows({
+              path  : "/ZbnhAddressSet",
+              events: { dataReceived: () => this._oAddrVHD.update() }
+            });
+            // instant row‑click → commit
+            oTable.attachRowSelectionChange(this._onAddrRowSelect, this);
+          },
+
+          _bindAddrItems: function (oTable) {
+            // sap.m.Table
+            oTable.addColumn(new sap.m.Column({header:"ID"}));
+            oTable.addColumn(new sap.m.Column({header:"Name"}));
+            oTable.addColumn(new sap.m.Column({header:"City"}));
+            oTable.addColumn(new sap.m.Column({header:"Post Code"}));
+            oTable.bindItems({
+              path    : "/ZbnhAddressSet",
+              template: new sap.m.ColumnListItem({cells:[
+                new sap.m.Label({text:"{Id}"}),
+                new sap.m.Label({text:"{Name}"}),
+                new sap.m.Label({text:"{City}"}),
+                new sap.m.Label({text:"{PostCode}"})
+              ]}),
+              events: { dataReceived: () => this._oAddrVHD.update() }
+            });
+            // tap‑row → commit
+            oTable.attachSelectionChange(this._onAddrRowSelect, this);
+          },
+
+          /***** filtering *****/
+          onAddrFilterBarSearch: function (oEvt) {
+            const aCtrls  = oEvt.getParameter("selectionSet") || [],
+                  aFilter = aCtrls.reduce((a,c)=>{
+                    if (c.getValue()) a.push(new sap.ui.model.Filter(c.getName(), sap.ui.model.FilterOperator.Contains, c.getValue()));
+                    return a;
+                  }, []);
+            this._filterAddrTable(aFilter.length ? new sap.ui.model.Filter({filters:aFilter,and:true}) : []);
+          },
+          _filterAddrTable: function (oFilter) {
+            this._oAddrVHD.getTableAsync().then(function (oTable){
+              const sAgg = oTable.bindRows ? "rows" : "items";
+              oTable.getBinding(sAgg).filter(oFilter);
+              this._oAddrVHD.update();
+            }.bind(this));
+          },
+
+          /***** selection handlers *****/
+          _onAddrRowSelect: function (oEvt) {
+            let oCtx;
+            const oSrc = oEvt.getSource();
+            if (oSrc.getSelectedContexts) {           // m.Table
+              oCtx = oSrc.getSelectedContexts()[0];
+            } else {                                  // ui.table.Table
+              const iSel = oSrc.getSelectedIndex();
+              oCtx = iSel >= 0 ? oSrc.getContextByIndex(iSel) : null;
+            }
+            if (oCtx) { this._commitAddrSelection(oCtx.getObject()); }
+          },
+
+          // ENTER key or token select fallback
+          onAddrVhOk: function (oEvt) {
+            const aTokens = oEvt.getParameter("tokens") || [];
+            if (aTokens.length) {
+              this._commitAddrSelection({ Id: aTokens[0].getKey() });
+            }
+          },
+
+          onAddrVhCancel: function(){ this._oAddrVHD.close(); },
+          onAddrVhAfterClose: function(){ /* keep instance for speed */ },
+
+          _commitAddrSelection: function (oAddr) {
+            const sId = String(oAddr.Id);
+            // 1) reflect in UI
+            this._oAddrInput.setValue(sId);
+            // 2) update bound model (edit model holds draft of item)
+            if (this._addrModel) {
+              this._addrModel.setProperty(this._addrPath, Number(sId));
+            }
+            this._oAddrVHD.close();
+          }
     });
 });

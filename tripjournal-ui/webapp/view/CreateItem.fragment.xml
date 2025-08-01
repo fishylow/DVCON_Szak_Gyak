@@ -5,11 +5,18 @@
         <Label id="_IDGenLabel9" text="Date"/>
         <DatePicker id="_IDGenDatePicker" dateValue="{createItem>/Ddate}" displayFormat="yyyy.MM.dd"/>
 
-        <Label id="_IDGenLabel10" text="From"/>
-        <Input id="_IDGenInput8" value="{createItem>/FromAddr}"/>
-
-        <Label id="_IDGenLabel11" text="To"/>
-        <Input id="_IDGenInput9" value="{createItem>/ToAddr}"/>
+        <Label id="_IDGenLabel3" text="From"/>
+        <Input id="inpFromAddr"
+              placeholder="Address ID"
+              value="{createItem>/FromAddr}"            
+              showValueHelp="true"
+              valueHelpRequest=".onAddrValueHelpRequest"/>
+        <Label id="_IDGenLabel10" text="To"/>
+        <Input id="inpToAddr"
+              placeholder="Address ID"
+              value="{createItem>/ToAddr}"
+              showValueHelp="true"
+              valueHelpRequest=".onAddrValueHelpRequest"/>
 
         <Label id="_IDGenLabel12" text="Distance (km)"/>
         <Input id="_IDGenInput10" value="{createItem>/Distance}"/>

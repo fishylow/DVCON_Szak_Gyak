@@ -7,10 +7,17 @@
         <DatePicker id="_IDGenDatePicker1" dateValue="{editItem>/Ddate}" displayFormat="yyyy.MM.dd"/>
 
         <Label id="_IDGenLabel15" text="From"/>
-        <Input id="_IDGenInput11" value="{editItem>/FromAddr}"/>
-
+        <Input id="inpFromAddr2"
+              placeholder="Address ID"
+              value="{editItem>/FromAddr}"            
+              showValueHelp="true"
+              valueHelpRequest=".onAddrValueHelpRequest"/>
         <Label id="_IDGenLabel16" text="To"/>
-        <Input id="_IDGenInput12" value="{editItem>/ToAddr}"/>
+        <Input id="inpToAddr2"
+              placeholder="Address ID"
+              value="{editItem>/ToAddr}"
+              showValueHelp="true"
+              valueHelpRequest=".onAddrValueHelpRequest"/>
 
         <Label id="_IDGenLabel17" text="Distance (km)"/>
         <Input id="_IDGenInput13" value="{editItem>/Distance}" type="Number"/>
