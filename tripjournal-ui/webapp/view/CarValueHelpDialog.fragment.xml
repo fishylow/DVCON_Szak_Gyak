@@ -1,0 +1,31 @@
+<core:FragmentDefinition
+    xmlns="sap.ui.comp.valuehelpdialog"
+    xmlns:m="sap.m"
+    xmlns:fb="sap.ui.comp.filterbar"
+    xmlns:core="sap.ui.core">
+  <ValueHelpDialog id="carVHD"
+        title="Select Car"
+        supportRanges="false"
+        supportMultiselect="false"
+        key="LicensePlate"
+        descriptionKey="Type"
+        ok=".onCarVhOk"
+        cancel=".onCarVhCancel"
+        afterClose=".onCarVhAfterClose">
+    <filterBar>
+      <fb:FilterBar id="_IDGenFilterBar" search=".onCarFilterBarSearch" isRunningInValueHelpDialog="true">
+        <fb:filterGroupItems>
+          <fb:FilterGroupItem id="_IDGenFilterGroupItem1" groupName="__$INTERNAL$" name="LicensePlate" label="Plate">
+            <fb:control><m:Input id="_IDGenInput2" name="LicensePlate"/></fb:control>
+          </fb:FilterGroupItem>
+          <fb:FilterGroupItem id="_IDGenFilterGroupItem2" groupName="__$INTERNAL$" name="Manufacturer" label="Make">
+            <fb:control><m:Input id="_IDGenInput6" name="Manufacturer"/></fb:control>
+          </fb:FilterGroupItem>
+          <fb:FilterGroupItem id="_IDGenFilterGroupItem3" groupName="__$INTERNAL$" name="Type" label="Model">
+            <fb:control><m:Input id="_IDGenInput14" name="Type"/></fb:control>
+          </fb:FilterGroupItem>
+        </fb:filterGroupItems>
+      </fb:FilterBar>
+    </filterBar>
+  </ValueHelpDialog>
+</core:FragmentDefinition>

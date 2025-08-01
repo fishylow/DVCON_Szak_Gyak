@@ -195,6 +195,50 @@ sap.ui.define([
                     );
                 }
             });
-        }
+        },
+
+        /** ------------------------- Address value‑help ------------------------- */
+        async onAddrValueHelpRequest(oEvt){
+          this._oAddrInput = oEvt.getSource();               // remembers which field we fill (From/To)
+
+          if (!this._oAddrVHD){
+            this._oAddrVHD = await sap.ui.core.Fragment.load({
+              name: "tripjournal.tripjournalui.view.AddressValueHelpDialog",
+              controller: this
+            });
+            this.getView().addDependent(this._oAddrVHD);
+            this._oAddrVHD.setSupportMultiselect(false);
+
+            // bind table after dialog table becomes available
+            this._oAddrVHD.getTableAsync().then(function(oTable){
+              oTable.setModel(this.getView().getModel());
+              const fnBind = oTable.bindRows ? this._bindAddrRows : this._bindAddrItems;
+              fnBind.call(this,oTable);
+            }.bind(this));
+          }
+          this._oAddrVHD.open();
+        },
+
+        /** react to built‑in SELECT event (row double‑click or Enter) */
+        onAddrVhSelect(oEvt){
+          const aTokens = oEvt.getParameter("tokens");
+          if (aTokens && aTokens.length){
+            const oChosen = {Id: aTokens[0].getKey(), Name: aTokens[0].getText()};
+            this._commitAddrSelection(oChosen);
+          }
+        },
+
+        onAddrVhCancel(){ this._oAddrVHD.close(); },
+        onAddrVhAfterClose(){ },
+
+        _commitAddrSelection(oAddr){
+          // put ID into visible field so user is crystal‑clear
+          this._oAddrInput.setValue(oAddr.Id);
+          // technical key for payload — same prop as visible value now
+          const sPath = this._oAddrInput.getBinding("value").getContext().getPath();
+          const oModel = this.getView().getModel("edit");
+          oModel.setProperty(sPath, Number(oAddr.Id));
+          this._oAddrVHD.close();
+        },
         });
       });

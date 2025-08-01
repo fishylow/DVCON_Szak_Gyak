@@ -7,7 +7,6 @@
   <Dialog
     id="createDialog"
     title="New Trip"
-    stretchOnPhone="true"
   >
     <content>
       <f:SimpleForm id="_IDGenSimpleForm" editable="true" layout="ResponsiveGridLayout" labelSpanL="4" emptySpanL="1">
@@ -17,8 +16,12 @@
         <Label id="_IDGenLabel2" text="Month (MM)"/>
         <Input id="_IDGenInput1" value="{create>/Mmonth}" placeholder="06"/>
 
-        <Label id="_IDGenLabel3" text="License Plate"/>
-        <Input id="_IDGenInput2" value="{create>/LicensePlate}"/>
+        <Label id="_IDGenLabel" text="Car (License Plate)"/>
+        <Input id="inpCar"
+               placeholder="e.g. ABC‑123"
+               value="{create>/LicensePlate}"
+               showValueHelp="true"
+               valueHelpRequest=".onCarValueHelpRequest"/>
 
         <Label id="_IDGenLabel4" text="KM Start"/>
         <Input id="_IDGenInput3" value="{create>/KmBefore}" type="Number"/>
