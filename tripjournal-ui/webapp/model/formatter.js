@@ -22,13 +22,13 @@ sap.ui.define([], function () {
         },
 
         /**
-         * You will need to get the status texts from the backend, this is a placeholder.
-         * We will later improve this to read from the ZbnhStatusSet model.
+         * This is a placeholder.
+         * Will later improve this to read from the ZbnhStatusSet model.
          * @param {string} sStatus The status code from the backend
          * @returns {string} The status text
          */
         formatStatusText: function (sStatus) {
-             // For now, a simple mapping. We'll improve this later.
+             // For now, a simple mapping. Will improve this later.
             switch (sStatus) {
                 case 'A':
                     return "Approved";
@@ -55,5 +55,20 @@ sap.ui.define([], function () {
 
 			return total;
 		},
+
+        /**
+         * Display address name if cached, else fall back to ID
+         */
+        addrName: function (iId) {
+            const oCache = sap.ui.getCore().getModel("addrCache");
+            if (oCache) {
+            const oEntry = oCache.getProperty("/map/" + iId);
+            if (oEntry && oEntry.Name) {
+                return oEntry.Name;
+            }
+            }
+            return iId; // fallback
+        },
+        
     };
 });

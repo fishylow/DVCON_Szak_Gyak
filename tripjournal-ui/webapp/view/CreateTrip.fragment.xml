@@ -33,7 +33,6 @@
         <Select id="_IDGenSelect" selectedKey="{create>/GasCurr}">
           <core:Item id="_IDGenItem" key="EUR" text="EUR"/>
           <core:Item id="_IDGenItem1" key="CNY" text="CNY"/>
-          <!-- add more or bind from ZBNH_CURRENCY value‑help if you have it -->
         </Select>
       </f:SimpleForm>
     </content>

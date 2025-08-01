@@ -67,14 +67,8 @@
                             path: 'Ddate',
                             type: 'sap.ui.model.type.Date'
                         }" />
-                        <Text id="_IDGenText18" text="{
-                            path: 'FromAddr',
-                            type: 'sap.ui.model.type.Integer'
-                        }"/>
-                        <Text id="_IDGenText21" text="{
-                            path: 'ToAddr',
-                            type: 'sap.ui.model.type.Integer'
-                        }"/>
+                        <Text id="_IDGenText18" text="{path: 'FromAddr', formatter: '.formatter.addrName'}"/>
+                        <Text id="_IDGenText21" text="{path: 'ToAddr',   formatter: '.formatter.addrName'}"/>
                         <ObjectNumber id="_IDGenObjectNumber2" number="{Distance}" unit="km" />
                          <ObjectNumber id="_IDGenObjectNumber3"
                             number="{

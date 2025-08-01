@@ -37,6 +37,27 @@ sap.ui.define([
             const oRouter = this.getOwnerComponent().getRouter();
             oRouter.getRoute("RouteDetail").attachPatternMatched(this._onObjectMatched, this);
             this.getView().setModel(new JSONModel({ Gasmilage : 0, TotalCost : 0 }), SUM_PATH);
+            this._loadAddressCache();
+        },
+
+        _loadAddressCache: function () {
+          // shared cache model lives in core
+          const oCache = sap.ui.getCore().getModel("addrCache") || new sap.ui.model.json.JSONModel({ map: {} });
+          sap.ui.getCore().setModel(oCache, "addrCache");
+        
+          // grab main OData model from the component (view model may not be there yet)
+          const oModel = this.getOwnerComponent().getModel();
+          if (!oModel) { return; }
+        
+          oModel.metadataLoaded().then(function () {
+            oModel.read("/ZbnhAddressSet", {
+              success: function (oData) {
+                const m = {};
+                (oData.results || []).forEach(function (r) { m[r.Id] = r; });
+                oCache.setProperty("/map", m);
+              }
+            });
+          });
         },
 
         _onObjectMatched: function (oEvent) {
