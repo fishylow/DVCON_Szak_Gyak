@@ -45,7 +45,7 @@ sap.ui.define([
           const oCache = sap.ui.getCore().getModel("addrCache") || new sap.ui.model.json.JSONModel({ map: {} });
           sap.ui.getCore().setModel(oCache, "addrCache");
         
-          // grab main OData model from the component (view model may not be there yet)
+          // grab main OData model from the component
           const oModel = this.getOwnerComponent().getModel();
           if (!oModel) { return; }
         
@@ -80,7 +80,7 @@ sap.ui.define([
       
           oModel.metadataLoaded().then(() => {
       
-              // ③‑a  read header incl. all items so we can aggregate the cost
+              // read header
               oModel.read(sHdrPath, {
                   urlParameters : { "$expand" : "to_TripItemSet" },
                   success : oHdr => {
@@ -90,7 +90,7 @@ sap.ui.define([
                   }
               });
       
-              // ③‑b  read the car once to get the consumption
+              // read the car once to get the consumption
               oModel.read("/ZbnhCarSet('" + sLicensePlate + "')", {
                   success : oCar => oSum.setProperty("/Gasmilage", oCar.Gasmilage)
               });
@@ -151,11 +151,11 @@ sap.ui.define([
                 return MessageBox.error("From and To cannot be identical.");
             }
 
-            /* header values (fuel price / currency) */
+            // header values (fuel price / currency) 
             const oHdr   = this.getView().getBindingContext().getObject();
             const oModel = this.getView().getModel();
 
-            /* fetch mileage for the selected car */
+            // fetch mileage for the selected car 
             const sCarPath = "/" + oModel.createKey("ZbnhCarSet", {
                 LicensePlate: oHdr.LicensePlate
             });
@@ -213,7 +213,7 @@ sap.ui.define([
           const sPath = this.byId("tripItemTable")
                            .getSelectedItem().getBindingContext().getPath();
 
-          /* header values (fuel price / currency) */
+          // header values (fuel price / currency)
           const oHdr   = this.getView().getBindingContext().getObject();
           const oModel = this.getView().getModel();
           const sCarPath = "/" + oModel.createKey("ZbnhCarSet", {
@@ -250,7 +250,7 @@ sap.ui.define([
             oEvt.getSource().getParent().close();
           },
           
-          // --- overcomplicated delete function, but it works
+          // overcomplicated delete function, but it works
           onDeleteSelectedItems: function () {
             const aItems = this.byId("tripItemTable").getSelectedItems();
             if (aItems.length === 0) { return; }
@@ -261,11 +261,11 @@ sap.ui.define([
           
                 const oModel   = this.getView().getModel();
           
-                /* make one batch group */
+                // make one batch group 
                 const sGroup   = "massDel_" + Date.now();
                 oModel.setDeferredBatchGroups([sGroup]);            
           
-                /* schedule each DELETE with its own change‑set */
+                // schedule each DELETE with its own change‑set 
                 aItems.forEach((oIt, idx) => {
                   oModel.remove(
                     oIt.getBindingContext().getPath(),
@@ -276,7 +276,7 @@ sap.ui.define([
                   );
                 });
           
-                /* send the batch in one go */
+                // send the batch in one go
                 oModel.submitChanges({
                   groupId : sGroup,                                
                   success : () => {
@@ -290,12 +290,12 @@ sap.ui.define([
             });
           },
 
-          /************  Address value‑help  ************/
+          //  Address value‑help  
           async onAddrValueHelpRequest(oEvt) {
-            this._oAddrInput   = oEvt.getSource();                       // remember triggering field
+            this._oAddrInput   = oEvt.getSource();                       
             const oBind = this._oAddrInput.getBinding("value");
             this._addrPath  = oBind ? oBind.getPath() : "/FromAddr";
-            this._addrModel = oBind ? oBind.getModel() : null; // FromAddr or ToAddr
+            this._addrModel = oBind ? oBind.getModel() : null; 
 
             // Lazy‑load dialog once
             if (!this._oAddrVHD) {
@@ -308,21 +308,18 @@ sap.ui.define([
 
               /* bind the internal table AFTER it is created */
               this._oAddrVHD.getTableAsync().then(function (oTable) {
-                oTable.setModel(this.getView().getModel()); // OData v2 model
+                oTable.setModel(this.getView().getModel()); 
 
                 if (oTable.bindRows) {
-                  this._bindAddrRows(oTable);   // desktop
-                } else {
-                  this._bindAddrItems(oTable);  // phone / tablet
+                  this._bindAddrRows(oTable);   
                 }
               }.bind(this));
             }
             this._oAddrVHD.open();
           },
 
-          /***** table column helpers *****/
+          // table column helpers
           _bindAddrRows: function (oTable) {
-            // sap.ui.table.Table
             oTable.addColumn(new sap.ui.table.Column({label:"ID",          template:new sap.m.Label({text:"{Id}"})}));
             oTable.addColumn(new sap.ui.table.Column({label:"Name",        template:new sap.m.Label({text:"{Name}"})}));
             oTable.addColumn(new sap.ui.table.Column({label:"City",        template:new sap.m.Label({text:"{City}"})}));
@@ -331,12 +328,11 @@ sap.ui.define([
               path  : "/ZbnhAddressSet",
               events: { dataReceived: () => this._oAddrVHD.update() }
             });
-            // instant row‑click → commit
+            // commit on row click
             oTable.attachRowSelectionChange(this._onAddrRowSelect, this);
           },
 
           _bindAddrItems: function (oTable) {
-            // sap.m.Table
             oTable.addColumn(new sap.m.Column({header:"ID"}));
             oTable.addColumn(new sap.m.Column({header:"Name"}));
             oTable.addColumn(new sap.m.Column({header:"City"}));
@@ -351,11 +347,11 @@ sap.ui.define([
               ]}),
               events: { dataReceived: () => this._oAddrVHD.update() }
             });
-            // tap‑row → commit
+            // tap‑row -> commit
             oTable.attachSelectionChange(this._onAddrRowSelect, this);
           },
 
-          /***** filtering *****/
+          // filtering
           onAddrFilterBarSearch: function (oEvt) {
             const aCtrls  = oEvt.getParameter("selectionSet") || [],
                   aFilter = aCtrls.reduce((a,c)=>{
@@ -372,20 +368,20 @@ sap.ui.define([
             }.bind(this));
           },
 
-          /***** selection handlers *****/
+          // selection handlers
           _onAddrRowSelect: function (oEvt) {
             let oCtx;
             const oSrc = oEvt.getSource();
-            if (oSrc.getSelectedContexts) {           // m.Table
+            if (oSrc.getSelectedContexts) {           
               oCtx = oSrc.getSelectedContexts()[0];
-            } else {                                  // ui.table.Table
+            } else {                                  
               const iSel = oSrc.getSelectedIndex();
               oCtx = iSel >= 0 ? oSrc.getContextByIndex(iSel) : null;
             }
             if (oCtx) { this._commitAddrSelection(oCtx.getObject()); }
           },
 
-          // ENTER key or token select fallback
+          // fallback
           onAddrVhOk: function (oEvt) {
             const aTokens = oEvt.getParameter("tokens") || [];
             if (aTokens.length) {
@@ -398,9 +394,7 @@ sap.ui.define([
 
           _commitAddrSelection: function (oAddr) {
             const sId = String(oAddr.Id);
-            // 1) reflect in UI
             this._oAddrInput.setValue(sId);
-            // 2) update bound model (edit model holds draft of item)
             if (this._addrModel) {
               this._addrModel.setProperty(this._addrPath, Number(sId));
             }

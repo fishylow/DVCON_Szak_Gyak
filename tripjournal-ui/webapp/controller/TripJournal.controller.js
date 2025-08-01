@@ -18,7 +18,7 @@ sap.ui.define([
           
         },
 
-        /**Navigation on click to the Details page. */
+        // Navigation on click to the Details page
         onNavToDetails: function (oEvent) {
             const oContext = oEvent.getSource().getBindingContext();
             const oObject = oContext.getObject();
@@ -31,9 +31,8 @@ sap.ui.define([
             });
         },
 
-        /**
-         * Filters the trip header table based on user input.
-         */
+        // Filters the trip header table based on user input.
+
         onFilterTrips: function () {
             const oView = this.getView();
             const sStatus = oView.byId("statusFilter").getSelectedKey();
@@ -62,9 +61,7 @@ sap.ui.define([
             oBinding.filter(aFilters);
         },
 
-        /**
-         * Clears all filters and refreshes the table binding.
-         */
+        // Clears all filters and refreshes the table binding.
         onClearFilter: function () {
             const oView = this.getView();
             oView.byId("statusFilter").setSelectedKey("");
@@ -114,7 +111,7 @@ sap.ui.define([
               },
               {
                 success : () => {
-                  MessageToast.show("Header updated");                   // update via OData
+                  MessageToast.show("Header updated");                   
                   this._oEditDialog.close();
                 },
                 error   : oErr => MessageBox.error(oErr.message)
@@ -159,11 +156,11 @@ sap.ui.define([
           },
         
           onCreateTrip: function () {
-            // 1. read data from the dialog‑scoped model
+            // read data from the model
             const oCreate = this._oCreateDialog.getModel("create").getData();
         
             const sGasPrice = Number(oCreate.GasPrice || 0).toFixed(3);
-            // 2. compose payload
+            // compose payload
             const oPayload = {
                 Username:     "BNEDER",          // ideiglenesen sajat userbe rakom
                 Yyear:        Number(oCreate.Yyear),
@@ -177,7 +174,7 @@ sap.ui.define([
                 Note:         ""
             };
         
-            // 3. create header
+            // create header
             this.getView().getModel().create("/TripHeaderSet", oPayload, {
                 success: function () {
                     sap.m.MessageToast.show("New trip created");
@@ -197,9 +194,9 @@ sap.ui.define([
             });
         },
 
-        /** ------------------------- Address value‑help ------------------------- */
+        // Address value‑help 
         async onAddrValueHelpRequest(oEvt){
-          this._oAddrInput = oEvt.getSource();               // remembers which field we fill (From/To)
+          this._oAddrInput = oEvt.getSource();            
 
           if (!this._oAddrVHD){
             this._oAddrVHD = await sap.ui.core.Fragment.load({
@@ -219,7 +216,7 @@ sap.ui.define([
           this._oAddrVHD.open();
         },
 
-        /** react to built‑in SELECT event (row double‑click or Enter) */
+        // react to built‑in SELECT event
         onAddrVhSelect(oEvt){
           const aTokens = oEvt.getParameter("tokens");
           if (aTokens && aTokens.length){
@@ -232,9 +229,7 @@ sap.ui.define([
         onAddrVhAfterClose(){ },
 
         _commitAddrSelection(oAddr){
-          // put ID into visible field so user is crystal‑clear
           this._oAddrInput.setValue(oAddr.Id);
-          // technical key for payload — same prop as visible value now
           const sPath = this._oAddrInput.getBinding("value").getContext().getPath();
           const oModel = this.getView().getModel("edit");
           oModel.setProperty(sPath, Number(oAddr.Id));
