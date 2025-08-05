@@ -13,12 +13,32 @@ sap.ui.define([
 
   return Controller.extend("tripjournal.tripjournalui.controller.TripJournal", {
       formatter: formatter,
+    
+      _initYearMonthModels: function () {
+        const oI18n = this.getOwnerComponent().getModel("i18n").getResourceBundle(),
+              iNow  = new Date().getFullYear();
+    
+        // Years: last 5, this, and next
+        const aYears = Array.from({length: 7}, (_,i)=> {
+            const y = iNow - 5 + i;
+            return { key: String(y), text: String(y) };
+        });
+        this.getView().setModel(new sap.ui.model.json.JSONModel(aYears), "years");
+    
+        // Months: use i18n so it follows the UI language
+        const aMonths = Array.from({length: 12}, (_,i)=> {
+            const k = String(i+1).padStart(2,"0");
+            return { key: k, text: oI18n.getText("month."+k) };
+        });
+        this.getView().setModel(new sap.ui.model.json.JSONModel(aMonths), "months");
+    },
 
       /**
        * Initializes the TripJournal controller
        * Currently empty but available for future initialization logic
        */
       onInit: function () {
+        this._initYearMonthModels();
       },
 
       /**
@@ -45,33 +65,21 @@ sap.ui.define([
       onFilterTrips: function () {
           const oView = this.getView();
           const sStatus = oView.byId("statusFilter").getSelectedKey();
-          const oDateRange = oView.byId("dateFilter");
-          const dFromDate = oDateRange.getDateValue();
-          const dToDate = oDateRange.getSecondDateValue();
-          const sLicensePlate = oView.byId("licensePlateFilter").getValue();
           const oTable = oView.byId("tripHeaderTable");
           const oBinding = oTable.getBinding("items");
 
+          const sYear   = oView.byId("yearFilter").getSelectedKey();
+          const sMonth  = oView.byId("monthFilter").getSelectedKey();
+          const sPlate  = oView.byId("licensePlateFilter").getValue();
+
           const aFilters = [];
+          if (sStatus) {  aFilters.push(new Filter("Status",        FilterOperator.EQ, sStatus)); }
+          if (sPlate) {   aFilters.push(new Filter("LicensePlate",  FilterOperator.Contains, sPlate)); }
+          if (sYear)  {   aFilters.push(new Filter("Yyear",         FilterOperator.EQ, sYear));  }
+          if (sMonth) {   aFilters.push(new Filter("Mmonth",        FilterOperator.EQ, sMonth)); }
 
-          // Add status filter if selected
-          if (sStatus) {
-              aFilters.push(new Filter("Status", FilterOperator.EQ, sStatus));
-          }
+        oBinding.filter(aFilters);
 
-          // Add license plate filter if entered
-          if (sLicensePlate) {
-              aFilters.push(new Filter("LicensePlate", FilterOperator.Contains, sLicensePlate));
-          }
-
-          // Add date filter if both dates are selected
-          if (dFromDate && dToDate) {
-              // For simplicity, we'll filter by Year for now.
-              // A proper implementation would need to handle year and month ranges.
-              aFilters.push(new Filter("Yyear", FilterOperator.EQ, dFromDate.getFullYear()));
-          }
-
-          oBinding.filter(aFilters);
       },
 
       /**
@@ -82,9 +90,10 @@ sap.ui.define([
           const oView = this.getView();
           
           // Reset all filter controls
-          oView.byId("statusFilter").setSelectedKey("");
-          oView.byId("dateFilter").setValue("");
+          oView.byId("yearFilter").setSelectedKey("");
+          oView.byId("monthFilter").setSelectedKey("");
           oView.byId("licensePlateFilter").setValue("");
+
 
           // Clear table filters
           const oTable = oView.byId("tripHeaderTable");
@@ -306,6 +315,146 @@ sap.ui.define([
           const oModel = this.getView().getModel("edit");
           oModel.setProperty(sPath, Number(oAddr.Id));
           this._oAddrVHD.close();
-      }
+      },
+
+    /* ============================================================ */
+    /* ==============  CAR   VALUE-HELP  HANDLERS  ================= */
+    /* ============================================================ */
+
+    /**
+     * Opens the car value-help dialog (lazy-loads on first use)
+     * @param {sap.ui.base.Event} oEvt – value-help request event
+     */
+    async onCarValueHelpRequest(oEvt) {
+        // remember the input that triggered the VH – we'll write back to it later
+        this._oCarInput = oEvt.getSource();
+
+        // keep model + path so we can update JSONModel as well
+        const oBind     = this._oCarInput.getBinding("value");
+        this._carPath   = oBind ? oBind.getPath()   : "/LicensePlate";
+        this._carModel  = oBind ? oBind.getModel() : null;
+
+        if (!this._oCarVHD) {
+            // lazy-load only once
+            this._oCarVHD = await sap.ui.core.Fragment.load({
+                name:      "tripjournal.tripjournalui.view.CarValueHelpDialog",
+                controller: this
+            });
+            this.getView().addDependent(this._oCarVHD);
+            this._oCarVHD.setSupportMultiselect(false);
+
+            // bind the internal table after it's ready
+            this._oCarVHD.getTableAsync().then(oTable => {
+                oTable.setModel(this.getView().getModel());  // ODataModel
+                const fnBind = oTable.bindRows ? this._bindCarRows : this._bindCarItems;
+                fnBind.call(this, oTable);
+            });
+        }
+        this._oCarVHD.open();
+    },
+
+    /* ------------------------------ *
+    * table builders (rows / items)  *
+    * ------------------------------ */
+    _bindCarRows(oTable) {
+        // columns
+        oTable.addColumn(new sap.ui.table.Column({label: "Plate",        template: new sap.m.Label({text: "{LicensePlate}"})}));
+        oTable.addColumn(new sap.ui.table.Column({label: "Make",         template: new sap.m.Label({text: "{Manufacturer}"})}));
+        oTable.addColumn(new sap.ui.table.Column({label: "Model",        template: new sap.m.Label({text: "{Type}"})}));
+        oTable.addColumn(new sap.ui.table.Column({label: "Consumption",  template: new sap.m.Label({text: "{Gasmilage} l/100km"})}));
+
+        // data
+        oTable.bindRows({
+            path:   "/ZbnhCarSet",
+            events: { dataReceived: () => this._oCarVHD.update() }
+        });
+
+        oTable.attachRowSelectionChange(this._onCarRowSelect, this);
+    },
+
+    _bindCarItems(oTable) {
+        oTable.addColumn(new sap.m.Column({header: "Plate"}));
+        oTable.addColumn(new sap.m.Column({header: "Make"}));
+        oTable.addColumn(new sap.m.Column({header: "Model"}));
+        oTable.addColumn(new sap.m.Column({header: "Consumption"}));
+
+        oTable.bindItems({
+            path:     "/ZbnhCarSet",
+            template: new sap.m.ColumnListItem({
+                cells: [
+                    new sap.m.Label({text: "{LicensePlate}"}),
+                    new sap.m.Label({text: "{Manufacturer}"}),
+                    new sap.m.Label({text: "{Type}"}),
+                    new sap.m.Label({text: "{Gasmilage} l/100km"})
+                ]
+            }),
+            events: { dataReceived: () => this._oCarVHD.update() }
+        });
+
+        oTable.attachSelectionChange(this._onCarRowSelect, this);
+    },
+
+    /* ------------------ *
+    * filter-bar search  *
+    * ------------------ */
+    onCarFilterBarSearch(oEvt) {
+        const aCtrls  = oEvt.getParameter("selectionSet") || [];
+        const aFlt = aCtrls.reduce((a,c)=>{
+            if (c.getValue()) {
+                a.push(new sap.ui.model.Filter(c.getName(),
+                        sap.ui.model.FilterOperator.Contains,
+                        c.getValue()));
+            }
+            return a;
+        }, []);
+        const oFilter = aFlt.length ? new sap.ui.model.Filter({filters:aFlt, and:true}) : [];
+        this._filterCarTable(oFilter);
+    },
+
+    _filterCarTable(oFilter) {
+        this._oCarVHD.getTableAsync().then(oTable=>{
+            const sAgg = oTable.bindRows ? "rows" : "items";
+            oTable.getBinding(sAgg).filter(oFilter);
+            this._oCarVHD.update();
+        });
+    },
+
+    /* ----------------------- *
+    * selection + callbacks   *
+    * ----------------------- */
+    _onCarRowSelect(oEvt) {
+        let oCtx;
+        const oSrc = oEvt.getSource();
+        if (oSrc.getSelectedContexts) {                   // sap.ui.table.Table
+            oCtx = oSrc.getSelectedContexts()[0];
+        } else {                                          // sap.m.Table
+            const iSel = oSrc.getSelectedIndex();
+            oCtx = iSel >= 0 ? oSrc.getContextByIndex(iSel) : null;
+        }
+        if (oCtx) { this._commitCarSelection(oCtx.getObject()); }
+    },
+
+    onCarVhOk(oEvt) {
+        const aTokens = oEvt.getParameter("tokens") || [];
+        if (aTokens.length) {
+            this._commitCarSelection({ LicensePlate: aTokens[0].getKey() });
+        }
+    },
+
+    onCarVhCancel()  { this._oCarVHD.close(); },
+    onCarVhAfterClose() { /* keep instance for reuse */ },
+
+    /**
+     * Writes chosen plate back to input + JSON model
+     * @param {object} oCar – selected car object
+     */
+    _commitCarSelection(oCar) {
+        const sPlate = oCar.LicensePlate;
+        this._oCarInput.setValue(sPlate);
+        if (this._carModel) {
+            this._carModel.setProperty(this._carPath, sPlate);
+        }
+        this._oCarVHD.close();
+    }
   });
 });

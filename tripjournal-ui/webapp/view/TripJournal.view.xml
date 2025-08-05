@@ -17,17 +17,19 @@
                 >
                     <core:Item id="_IDGenItem2" key="{Code}" text="{Text}" />
                 </Select>
-                <DateRangeSelection
-                    id="dateFilter"
-                    width="20rem"
-                    displayFormat="yyyy.MM.dd"
-                />
-                <SearchField
-                    id="licensePlateFilter"
-                    width="15rem"
-                    placeholder="{i18n>licensePlate}"
-                    search=".onFilterTrips"
-                />
+                <Select id="yearFilter"  width="9rem" items="{years>/}">
+                    <core:Item id="_IDGenItem6" key="{years>key}" text="{years>text}"/>
+                </Select>
+
+                <Select id="monthFilter" width="11rem" items="{months>/}">
+                    <core:Item id="_IDGenItem7" key="{months>key}" text="{months>text}"/>
+                </Select>
+
+                <Input  id="licensePlateFilter"
+                        width="15rem"
+                        placeholder="{i18n>licensePlate}"
+                        showValueHelp="true"
+                        valueHelpRequest=".onCarValueHelpRequest"/>
                 <ToolbarSpacer id="_IDGenToolbarSpacer" />
                 <Button id="_IDGenButton3"
                     text="{i18n>filterButtonText}"
