@@ -215,6 +215,16 @@ sap.ui.define([
        */
       onCreateItem: function () {
           const oRaw = this._oCreateItemDlg.getModel("createItem").getData();
+
+          const oHdr       = this.getView().getBindingContext().getObject();    // header we’re in
+          const d          = oRaw.Ddate instanceof Date ? oRaw.Ddate : new Date(oRaw.Ddate);
+          const iHdrYear   = Number(oHdr.Yyear);
+          const iHdrMonth  = Number(oHdr.Mmonth);          // “01”..“12” → 1..12
+
+          if (d.getFullYear() !== iHdrYear || (d.getMonth() + 1) !== iHdrMonth) {
+                return sap.m.MessageBox.error(
+                    `Date must be within ${iHdrYear}.${String(iHdrMonth).padStart(2, "0")}.`);
+          }
           
           // Validate that from and to addresses are different
           if (oRaw.FromAddr === oRaw.ToAddr) {
@@ -222,7 +232,6 @@ sap.ui.define([
           }
 
           // Get header values for fuel price and currency
-          const oHdr   = this.getView().getBindingContext().getObject();
           const oModel = this.getView().getModel();
 
           // Fetch car mileage for cost calculation
