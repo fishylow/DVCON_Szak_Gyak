@@ -62,11 +62,11 @@ sap.ui.define([], function () {
         },
 
         /**
-         * Calculates the total kilometers after a trip
+         * Calculates the total kilometers for the month's trips
          * Adds the starting kilometers to the sum of all trip item distances
-         * @param {number} iKmBefore - Starting kilometers before the trip
+         * @param {number} iKmBefore - Starting kilometers before the month
          * @param {Array} aKeys - Array of trip item keys to sum distances
-         * @returns {number} Total kilometers after the trip
+         * @returns {number} Total kilometers after the month
          */
         formatKmAfter: function(iKmBefore, aKeys) {
             let total = _number(iKmBefore);
