@@ -377,10 +377,11 @@ sap.ui.define([
        * @param {sap.ui.base.Event} oEvt - Value help request event
        */
       async onAddrValueHelpRequest(oEvt) {
-          this._oAddrInput = oEvt.getSource();                       
-          const oBind = this._oAddrInput.getBinding("value");
-          this._addrPath  = oBind ? oBind.getPath() : "/FromAddr";
-          this._addrModel = oBind ? oBind.getModel() : null; 
+        this._oAddrInput = oEvt.getSource();
+        const oBind = this._oAddrInput.getBinding("value");   // value now bound to ...Disp
+        this._addrDispPath = oBind ? oBind.getPath()  : "/FromAddrDisp";  // e.g. "/FromAddrDisp"
+        this._addrIdPath   = this._addrDispPath.replace(/Disp$/, "");     // -> "/FromAddr"
+        this._addrModel    = oBind ? oBind.getModel() : null; 
 
           // Lazy-load dialog once
           if (!this._oAddrVHD) {
@@ -506,10 +507,13 @@ sap.ui.define([
        * @param {sap.ui.base.Event} oEvt - OK event
        */
       onAddrVhOk: function (oEvt) {
-          const aTokens = oEvt.getParameter("tokens") || [];
-          if (aTokens.length) {
-              this._commitAddrSelection({ Id: aTokens[0].getKey() });
-          }
+        const aTokens = oEvt.getParameter("tokens") || [];
+        if (aTokens.length) {
+          this._commitAddrSelection({
+            Id:   aTokens[0].getKey(),
+            Name: aTokens[0].getText()  // ensure we pass the label, too
+          });
+        }
       },
 
       /**
@@ -532,14 +536,41 @@ sap.ui.define([
        * @param {Object} oAddr - Selected address object
        */
       _commitAddrSelection: function (oAddr) {
-          const sId = String(oAddr.Id);
-          this._oAddrInput.setValue(sId);
-          
-          if (this._addrModel) {
-              this._addrModel.setProperty(this._addrPath, Number(sId));
-          }
-          
-          this._oAddrVHD.close();
+        const sId   = String(oAddr.Id);
+        const sName = oAddr.Name || sId;
+      
+        // show the NAME in the visible field
+        this._oAddrInput.setValue(sName);
+      
+        // set both display and ID in the model so we still post the numeric ID
+        if (this._addrModel) {
+          this._addrModel.setProperty(this._addrDispPath, sName);     // e.g. "/FromAddrDisp"
+          this._addrModel.setProperty(this._addrIdPath,   Number(sId)); // e.g. "/FromAddr"
+        }
+      
+        this._oAddrVHD.close();
+      },
+
+      onAddrManualChange: function (oEvt) {
+        const sVal   = (oEvt.getParameter("value") || "").trim();
+        const oBind  = oEvt.getSource().getBinding("value"); // bound to ...Disp
+        const oModel = oBind.getModel();
+        const sDisp  = oBind.getPath();             // "/FromAddrDisp" or "/ToAddrDisp"
+        const sId    = sDisp.replace(/Disp$/, "");  // "/FromAddr" or "/ToAddr"
+      
+        // Always keep the typed text in the *display* property
+        oModel.setProperty(sDisp, sVal);
+      
+        // If the typed text is an integer, mirror it to the ID property; otherwise clear ID
+        if (sVal === "") {
+          oModel.setProperty(sId, null);
+        } else if (/^\d+$/.test(sVal)) {
+          oModel.setProperty(sId, Number(sVal));
+        } else {
+          // Non-numeric manual entry -> not a valid ID; do not post a stale ID
+          oModel.setProperty(sId, null);
+        }
       }
+      
   });
 });

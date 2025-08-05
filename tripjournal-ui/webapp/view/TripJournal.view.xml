@@ -18,10 +18,12 @@
                     <core:Item id="_IDGenItem2" key="{Code}" text="{Text}" />
                 </Select>
                 <Select id="yearFilter"  width="9rem" items="{years>/}">
+                    <core:Item id="_IDGenItem8" key=""  text="{i18n>filter.none}"/>
                     <core:Item id="_IDGenItem6" key="{years>key}" text="{years>text}"/>
                 </Select>
 
                 <Select id="monthFilter" width="11rem" items="{months>/}">
+                    <core:Item id="_IDGenItem9" key=""  text="{i18n>filter.none}"/>
                     <core:Item id="_IDGenItem7" key="{months>key}" text="{months>text}"/>
                 </Select>
 

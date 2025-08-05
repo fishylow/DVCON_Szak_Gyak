@@ -8,17 +8,19 @@
         <Label id="_IDGenLabel3" text="From"/>
         <Input id="inpFromAddr"
               placeholder="Address ID"
-              value="{createItem>/FromAddr}" 
-              required="true"           
+              value="{createItem>/FromAddrDisp}"
+              required="true"
               showValueHelp="true"
-              valueHelpRequest=".onAddrValueHelpRequest"/>
+              valueHelpRequest=".onAddrValueHelpRequest"
+              liveChange=".onAddrManualChange"/>
         <Label id="_IDGenLabel10" text="To"/>
         <Input id="inpToAddr"
               placeholder="Address ID"
-              value="{createItem>/ToAddr}"
+              value="{createItem>/ToAddrDisp}"
               required="true"
               showValueHelp="true"
-              valueHelpRequest=".onAddrValueHelpRequest"/>
+              valueHelpRequest=".onAddrValueHelpRequest"
+              liveChange=".onAddrManualChange"/>
 
         <Label id="_IDGenLabel12" text="Distance (km)"/>
         <Input id="_IDGenInput10" value="{createItem>/Distance}" required="true"/>

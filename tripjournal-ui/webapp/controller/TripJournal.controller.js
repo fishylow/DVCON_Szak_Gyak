@@ -15,22 +15,24 @@ sap.ui.define([
       formatter: formatter,
     
       _initYearMonthModels: function () {
-        const oI18n = this.getOwnerComponent().getModel("i18n").getResourceBundle(),
-              iNow  = new Date().getFullYear();
+        const iNow   = new Date().getFullYear(),
+              oI18n  = this.getOwnerComponent().getModel("i18n").getResourceBundle();
     
-        // Years: last 5, this, and next
-        const aYears = Array.from({length: 7}, (_,i)=> {
-            const y = iNow - 5 + i;
-            return { key: String(y), text: String(y) };
-        });
-        this.getView().setModel(new sap.ui.model.json.JSONModel(aYears), "years");
+        // YEARS
+        const aYears = [{ key:"", text:oI18n.getText("filter.none") }]
+            .concat(Array.from({length:7}, (_,i)=> {
+                const y = iNow - 5 + i;
+                return { key: String(y), text: String(y) };
+            }));
+        this.getView().setModel(new JSONModel(aYears), "years");
     
-        // Months: use i18n so it follows the UI language
-        const aMonths = Array.from({length: 12}, (_,i)=> {
-            const k = String(i+1).padStart(2,"0");
-            return { key: k, text: oI18n.getText("month."+k) };
-        });
-        this.getView().setModel(new sap.ui.model.json.JSONModel(aMonths), "months");
+        // MONTHS
+        const aMonths = [{ key:"", text:oI18n.getText("filter.none") }]
+            .concat(Array.from({length:12}, (_,i)=> {
+                const k = String(i+1).padStart(2,"0");
+                return { key:k, text:oI18n.getText("month."+k) };
+            }));
+        this.getView().setModel(new JSONModel(aMonths), "months");
     },
 
       /**
@@ -70,7 +72,7 @@ sap.ui.define([
 
           const sYear   = oView.byId("yearFilter").getSelectedKey();
           const sMonth  = oView.byId("monthFilter").getSelectedKey();
-          const sPlate  = oView.byId("licensePlateFilter").getValue();
+          const sPlate  = oView.byId("licensePlateFilter").getValue().toUpperCase();
 
           const aFilters = [];
           if (sStatus) {  aFilters.push(new Filter("Status",        FilterOperator.EQ, sStatus)); }
