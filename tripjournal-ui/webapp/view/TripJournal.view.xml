@@ -8,22 +8,24 @@
         <subHeader>
             <Toolbar id="filterBar">
                 <Title id="_IDGenTitle" text="{i18n>filterBy}" />
-                <Select
-                    id="statusFilter"
-                    width="15rem"
-                    items="{
-                        path: '/ZbnhStatusSet'
-                    }"
-                >
-                    <core:Item id="_IDGenItem2" key="{Code}" text="{Text}" />
-                </Select>
+                 <ComboBox id="selStatus"
+                            width="10rem"
+                            placeholder="{i18n>statusPlaceholder}"
+                            change="onFilterTrips"              
+                            items="{
+                                path: '/ZbnhStatusSet',
+                                sorter: { path: 'Text' }
+                            }">
+                        <core:Item id="_IDGenItem2" key="{Code}" text="{Text}" />
+                    </ComboBox>
+
                 <Select id="yearFilter"  width="9rem" items="{years>/}">
-                    <core:Item id="_IDGenItem8" key=""  text="{i18n>filter.none}"/>
+                    <core:Item id="_IDGenItem8" key=""  text="{i18n>filter.noneYear}"/>
                     <core:Item id="_IDGenItem6" key="{years>key}" text="{years>text}"/>
                 </Select>
 
                 <Select id="monthFilter" width="11rem" items="{months>/}">
-                    <core:Item id="_IDGenItem9" key=""  text="{i18n>filter.none}"/>
+                    <core:Item id="_IDGenItem9" key=""  text="{i18n>filter.noneMonth}"/>
                     <core:Item id="_IDGenItem7" key="{months>key}" text="{months>text}"/>
                 </Select>
 
@@ -65,6 +67,12 @@
                     <Toolbar id="_IDGenToolbar">
                         <Title id="_IDGenTitle1" text="{i18n>tripsTitle}" level="H2"/>
                         <ToolbarSpacer id="_IDGenToolbarSpacer1"/>
+                        <Button id="changeStatusBtn"
+                                text="{i18n>changeStatusBtn}"
+                                enabled="false"
+                                press=".onOpenChangeStatusDialog"
+                                type="Emphasized"
+                                icon="sap-icon://edit" />
                         <Button id="editHeaderBtn"  icon="sap-icon://edit"
                                 enabled="false" press=".onOpenEditHeaderDialog"/>
                         <Button

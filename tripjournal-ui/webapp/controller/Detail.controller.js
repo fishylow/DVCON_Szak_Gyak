@@ -105,7 +105,7 @@ sap.ui.define([
        * @param {sap.ui.base.Event} oEvent - Route matching event
        */
       _onObjectMatched: function (oEvent) {
-          const sUsername     = "BNEDER";
+          const sUsername     = oEvent.getParameter("arguments").username;
           const sYear         = oEvent.getParameter("arguments").year;
           const sMonth        = oEvent.getParameter("arguments").month;
           const sLicensePlate = oEvent.getParameter("arguments").licensePlate;
@@ -132,12 +132,13 @@ sap.ui.define([
           oModel.metadataLoaded().then(() => {
               // Read header with items to calculate total cost
               oModel.read(sHdrPath, {
-                  urlParameters: { "$expand": "to_TripItemSet" },
-                  success: oHdr => {
-                      const aItems = (oHdr.to_TripItemSet && oHdr.to_TripItemSet.results) || [];
-                      const tot   = aItems.reduce((s, it) => s + Number(it.Cost || 0), 0).toFixed(2);
-                      oSum.setProperty("/TotalCost", tot);
-                  }
+                success: oHdr => {
+                  const bOpen = oHdr.Status === "N";
+                  this._bOpen = bOpen;                        // store for later
+                  this.byId("_IDGenButton").setEnabled(bOpen);   // “add” button
+                  this.byId("editItemBtn").setEnabled(false);    // will re-eval on selection
+                  this.byId("delItemBtn").setEnabled(false);
+                }
               });
     
               // Read car data to get fuel consumption
@@ -169,9 +170,9 @@ sap.ui.define([
        * @param {sap.ui.base.Event} oEvt - Selection change event
        */
       onItemSelectionChange: function (oEvt) {
-          const aSel = oEvt.getSource().getSelectedItems();
-          this.byId("editItemBtn").setEnabled(aSel.length === 1);
-          this.byId("delItemBtn").setEnabled(aSel.length > 0);
+        const aSel = oEvt.getSource().getSelectedItems();
+        this.byId("editItemBtn").setEnabled(this._bOpen && aSel.length === 1);
+        this.byId("delItemBtn").setEnabled(this._bOpen && aSel.length > 0);
       },
 
       /**
@@ -189,7 +190,7 @@ sap.ui.define([
                   // Pre-fill with header fields, other fields remain blank
                   const oHdr = this.getView().getBindingContext().getObject();
                   const oData = {
-                      Username:     "BNEDER",
+                      Username:     oHdr.Username,
                       Yyear:        oHdr.Yyear,
                       Mmonth:       oHdr.Mmonth,
                       LicensePlate: oHdr.LicensePlate,
@@ -236,7 +237,7 @@ sap.ui.define([
 
                   // Prepare payload for backend
                   const oPayload = {
-                      Username:     "BNEDER",
+                      Username:     oRaw.Username,
                       Yyear:        Number(oRaw.Yyear),
                       Mmonth:       oRaw.Mmonth,
                       LicensePlate: oRaw.LicensePlate,

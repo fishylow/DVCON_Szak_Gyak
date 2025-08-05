@@ -1,3 +1,10 @@
+function getCurrentUser() {
+    return sap.ushell && sap.ushell.Container
+         ? sap.ushell.Container.getUser().getId().toUpperCase()
+         : "BNEDER";        // fallback for local run
+  }
+  
+
 sap.ui.define([], function () {
     "use strict";
 
@@ -19,9 +26,9 @@ sap.ui.define([], function () {
          */
         formatStatusState: function (sStatus) {
             switch (sStatus) {
-                case 'A': // Approved
+                case 'J': // Approved
                     return "Success";
-                case 'R': // Rejected
+                case 'E': // Rejected
                     return "Error";
                 case 'N': // New/Nyitott
                     return "Warning";
@@ -40,10 +47,10 @@ sap.ui.define([], function () {
         formatStatusText: function (sStatus) {
             // For now, a simple mapping. Will improve this later.
             switch (sStatus) {
-                case 'A':
-                    return "Approved";
-                case 'R':
-                    return "Rejected";
+                case 'J':
+                    return "Jóváhagyott";
+                case 'E':
+                    return "Elutasított";
                 case 'N':
                     return "Nyitott";
                 default:

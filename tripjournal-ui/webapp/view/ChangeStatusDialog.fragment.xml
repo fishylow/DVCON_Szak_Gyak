@@ -1,0 +1,21 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
+  <Dialog id="changeStatusDialog" title="{i18n>changeStatus}">
+    <VBox id="_IDGenVBox" class="sapUiSmallMargin">
+      <Label id="_IDGenLabel2" text="{i18n>status}" design="Bold"/>
+      <Select id="statusSelect" width="100%" items="{/ZbnhStatusSet}">
+        <core:Item id="_IDGenItem3" key="{Code}" text="{Text}" />
+      </Select>
+
+      <Label id="_IDGenLabel20" text="{i18n>note}" design="Bold" class="sapUiTinyMarginTop"/>
+      <TextArea id="statusNote" rows="4" width="100%"
+                placeholder="{i18n>notePlaceholder}"/>
+    </VBox>
+
+    <beginButton>
+      <Button id="_IDGenButton12" text="{i18n>ok}" type="Emphasized" press=".onChangeStatusConfirm"/>
+    </beginButton>
+    <endButton>
+      <Button id="_IDGenButton13" text="{i18n>cancel}" press=".onChangeStatusCancel"/>
+    </endButton>
+  </Dialog>
+</core:FragmentDefinition>

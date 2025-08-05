@@ -19,7 +19,7 @@ sap.ui.define([
               oI18n  = this.getOwnerComponent().getModel("i18n").getResourceBundle();
     
         // YEARS
-        const aYears = [{ key:"", text:oI18n.getText("filter.none") }]
+        const aYears = [{ key:"", text:oI18n.getText("filter.noneYear") }]
             .concat(Array.from({length:7}, (_,i)=> {
                 const y = iNow - 5 + i;
                 return { key: String(y), text: String(y) };
@@ -27,7 +27,7 @@ sap.ui.define([
         this.getView().setModel(new JSONModel(aYears), "years");
     
         // MONTHS
-        const aMonths = [{ key:"", text:oI18n.getText("filter.none") }]
+        const aMonths = [{ key:"", text:oI18n.getText("filter.noneMonth") }]
             .concat(Array.from({length:12}, (_,i)=> {
                 const k = String(i+1).padStart(2,"0");
                 return { key:k, text:oI18n.getText("month."+k) };
@@ -66,7 +66,7 @@ sap.ui.define([
        */
       onFilterTrips: function () {
           const oView = this.getView();
-          const sStatus = oView.byId("statusFilter").getSelectedKey();
+          const sStatus = oView.byId("selStatus").getSelectedKey();
           const oTable = oView.byId("tripHeaderTable");
           const oBinding = oTable.getBinding("items");
 
@@ -95,6 +95,7 @@ sap.ui.define([
           oView.byId("yearFilter").setSelectedKey("");
           oView.byId("monthFilter").setSelectedKey("");
           oView.byId("licensePlateFilter").setValue("");
+          oView.byId("selStatus").setSelectedKey("");
 
 
           // Clear table filters
@@ -109,8 +110,15 @@ sap.ui.define([
        * @param {sap.ui.base.Event} oEvt - Selection change event
        */
       onSelectionChange: function (oEvt) {
-          const aSel = oEvt.getSource().getSelectedItems();
-          this.byId("editHeaderBtn").setEnabled(aSel.length === 1);   
+        const aSel = oEvt.getSource().getSelectedItems();
+        const bSingle = aSel.length === 1;
+      
+        // enable edit only if single-select AND status is open
+        const bOpen = bSingle &&
+                      aSel[0].getBindingContext().getProperty("Status") === "N";
+      
+        this.byId("editHeaderBtn").setEnabled(bOpen);
+        this.byId("changeStatusBtn").setEnabled(aSel.length > 0);
       },
 
       /**
@@ -217,11 +225,10 @@ sap.ui.define([
           // Read data from the model
           const oCreate = this._oCreateDialog.getModel("create").getData();
       
-          const sGasPrice = Number(oCreate.GasPrice || 0).toFixed(3);
-          
+          const sGasPrice = Number(oCreate.GasPrice || 0).toFixed(3);          
           // Compose payload for backend
           const oPayload = {
-              Username:     "BNEDER",          // Temporarily using own user
+              Username:     getCurrentUser(),         
               Yyear:        Number(oCreate.Yyear),
               Mmonth:       oCreate.Mmonth,
               LicensePlate: oCreate.LicensePlate,
@@ -457,6 +464,67 @@ sap.ui.define([
             this._carModel.setProperty(this._carPath, sPlate);
         }
         this._oCarVHD.close();
-    }
+    },
+    
+    /* === Lazy-load & open dialog =========================================== */
+    onOpenChangeStatusDialog: async function () {
+        if (!this._oChangeStatDlg) {
+            this._fragId        = "changeStatusFrag";              // <── save it
+            this._oChangeStatDlg = await Fragment.load({
+              id         : this._fragId,                           // ⭐ NEW
+              name       : "tripjournal.tripjournalui.view.ChangeStatusDialog",
+              controller : this
+            });
+            this.getView().addDependent(this._oChangeStatDlg);
+          }
+          this._oChangeStatDlg.open();
+    },
+    
+    onChangeStatusConfirm: function () {
+        const oTable     = this.byId("tripHeaderTable");
+        const aCtxs      = oTable.getSelectedItems().map(i => i.getBindingContext());
+        if (!aCtxs.length) { return; }
+      
+        // read dialog fields via Fragment.byId (dialog lives in a fragment)
+        const sKeyDlgId  = this._fragId; // saved at fragment load
+        const sNewStat   = Fragment.byId(sKeyDlgId, "statusSelect").getSelectedKey();
+        const sNote      = Fragment.byId(sKeyDlgId, "statusNote").getValue();
+      
+        if (!sNewStat) {
+            MessageToast.show(this.getText("msgSelectStat"));           // UX guard
+            return;
+        }
+      
+        /* ---- build batch exactly like onDeleteSelectedItems() ---- */
+        const oModel  = this.getView().getModel();
+        const sGroup  = "massStat_" + Date.now();                       // unique id
+        oModel.setDeferredBatchGroups([sGroup]);                        // queue ops
+      
+        aCtxs.forEach((oCtx, idx) => {
+          oModel.update(
+            oCtx.getPath(),                                            // /TripHeaderSet(...)
+            { Status: sNewStat, Note: sNote },                         // payload
+            {
+              merge      : true,                                       // MERGE verb
+              groupId    : sGroup,
+              changeSetId: "cs" + idx                                  // own changeset
+            }
+          );
+        });
+      
+        oModel.submitChanges({
+          groupId: sGroup,
+          success: () => {
+            oTable.removeSelections();                                 // reset UI
+            this.byId("changeStatusBtn").setEnabled(false);
+            oModel.refresh(true);                                      // pull fresh data
+          },
+          error  : oErr => MessageBox.error(oErr.message)
+        });
+      
+        this._oChangeStatDlg.close();
+      },
+    
+    onChangeStatusCancel: function () { this._oChangeStatDlg.close(); },
   });
 });
