@@ -21,6 +21,18 @@ function calcCost(distanceKm, lPer100Km, fuelPrice) {
   return +(qty * Number(fuelPrice)).toFixed(3);                        // money (scale 3)
 }
 
+/**
+ * Converts a JS Date to the backend's yyyy-MM-ddT00:00:00 (local) format
+ * without touching time-zone (avoids the ISO shift).
+ * @param {Date} d - Local date object
+ * @returns {string} yyyy-MM-ddT00:00:00
+ */
+function fmtLocalDate(d) {
+    const z = n => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}T00:00:00`;
+}
+
+
 sap.ui.define([
   "sap/ui/core/mvc/Controller",
   "sap/ui/core/routing/History",
@@ -231,7 +243,7 @@ sap.ui.define([
                       Batchid:      getBatchId(),
                       FromAddr:     Number(oRaw.FromAddr),
                       ToAddr:       Number(oRaw.ToAddr),
-                      Ddate:        oRaw.Ddate.toISOString().split("T")[0] + "T00:00:00",
+                      Ddate:        fmtLocalDate(oRaw.Ddate),
                       Distance:     Number(oRaw.Distance),
                       Cost:         String(fCost),
                       Currency:     oHdr.GasCurr,

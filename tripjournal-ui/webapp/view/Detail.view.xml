@@ -13,13 +13,7 @@
         <ObjectHeader
             id="detailObjectHeader"
             responsive="true"
-            title="{LicensePlate}"
-            number="{
-                path: 'GasPrice',
-                formatter: 'sap.ui.format.Number.getCurrencyInstance'
-            }"
-            numberUnit="{GasCurr}"
-        >
+            title="{LicensePlate}">
             <attributes>
                 <ObjectAttribute id="_IDGenObjectAttribute1" title="{i18n>colDate}" text="{= ${Yyear} + '. ' + ${Mmonth}}" />
                 <ObjectAttribute id="_IDGenObjectAttribute2" title="{i18n>colKmBefore}" text="{KmBefore} km" />
@@ -31,6 +25,11 @@
                     } km"/>
                 <ObjectAttribute id="_IDGenObjectAttribute4" title="{i18n>consumption}" text="{summary>/Gasmilage} l/100 km"/>
                 <ObjectAttribute id="_IDGenObjectAttribute5" title="{i18n>totalCost}"  text="{summary>/TotalCost} {GasCurr}"/>
+                <ObjectAttribute id="_IDGenObjectAttribute" title="{i18n>gasPrice}"
+                         text="{
+                            parts : ['GasPrice','GasCurr'],
+                            formatter : '.formatter.formatGasPrice'
+                         }"/>
             </attributes>
         </ObjectHeader>
         <Table

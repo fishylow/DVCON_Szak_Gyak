@@ -11,15 +11,27 @@
     <content>
       <f:SimpleForm id="_IDGenSimpleForm" editable="true" layout="ResponsiveGridLayout" labelSpanL="4" emptySpanL="1">
         <Label id="_IDGenLabel11" text="{i18n>year}"/>
-        <Select id="_IDGenSelect2"  selectedKey="{create>/Yyear}"
-                items="{years>/}">
-            <core:Item id="_IDGenItem3" key="{years>key}" text="{years>text}"/>
+        <Select id="createYear"
+                required="true"
+                selectedKey="{create>/Yyear}"
+                forceSelection="true"
+                items="{
+                    path   : 'years>/',
+                    filters: [{ path:'key', operator:'NE', value1:'' }]
+                }">
+            <core:Item id="_IDGenItem10" key="{years>key}" text="{years>text}"/>
         </Select>
 
         <Label id="_IDGenLabel19" text="{i18n>month}"/>
-        <Select id="_IDGenSelect3"  selectedKey="{create>/Mmonth}"
-                items="{months>/}">
-            <core:Item id="_IDGenItem10" key="{months>key}" text="{months>text}"/>
+        <Select id="createMonth"
+                required="true"
+                selectedKey="{create>/Mmonth}"
+                forceSelection="true"
+                items="{
+                    path   : 'months>/',
+                    filters: [{ path:'key', operator:'NE', value1:'' }]
+                }">
+            <core:Item id="_IDGenItem11" key="{months>key}" text="{months>text}"/>
         </Select>
 
         <Label id="_IDGenLabel" text="Car (License Plate)"/>
