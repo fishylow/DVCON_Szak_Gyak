@@ -71,6 +71,26 @@ sap.ui.define([
       },
 
       /**
+     * Re-computes KmAfter = KmBefore + sum(item.Distance) and PATCH-es it
+     * to the TripHeader. Can be called after create / update / delete of items.
+     */
+      _updateKmAfter: function () {
+        const oHdrPath = this.getView().getBindingContext().getPath();
+        const oModel   = this.getView().getModel();
+    
+        oModel.read(oHdrPath, {
+            urlParameters: { $expand: "to_TripItemSet" },
+            success: (oHdr) => {
+                const aItems = (oHdr.to_TripItemSet && oHdr.to_TripItemSet.results) || [];
+                let iKmAfter = Number(oHdr.KmBefore) || 0;
+    
+                aItems.forEach(oIt => { iKmAfter += Number(oIt.Distance) || 0; });
+                oModel.update(oHdrPath, { KmAfter: iKmAfter }, { merge: true });
+            }
+        });
+    },
+
+      /**
        * Loads address data into a shared cache model for performance
        * This cache is shared across the entire application
        */
@@ -266,6 +286,7 @@ sap.ui.define([
                           MessageToast.show("Item created");
                           this._oCreateItemDlg.close();
                           this.byId("tripItemTable").getBinding("items").refresh();
+                          this._updateKmAfter();
                       },
                       error: oErr => MessageBox.error(oErr.message)
                   });
@@ -330,6 +351,7 @@ sap.ui.define([
                       success: () => {
                           MessageToast.show("Item updated");
                           this._oEditItemDlg.close();
+                          this._updateKmAfter();
                       },
                       error:   oErr => MessageBox.error(oErr.message)
                   });
@@ -386,6 +408,7 @@ sap.ui.define([
                           MessageToast.show("Deletion finished");        
                           this.byId("tripItemTable").removeSelections();
                           this.byId("delItemBtn").setEnabled(false);
+                          this._updateKmAfter();
                       },
                       error:   oErr => MessageBox.error(oErr.message)
                   });
