@@ -149,7 +149,6 @@ sap.ui.define([
        */
       onUpdateHeader: function () {
           const oData = this._oEditDialog.getModel("edit").getData();
-          oData.setAutoExpandSelect(true);
           const sPath = this.byId("tripHeaderTable")
                            .getSelectedItem().getBindingContext().getPath();
         
@@ -526,5 +525,96 @@ sap.ui.define([
       },
     
     onChangeStatusCancel: function () { this._oChangeStatDlg.close(); },
+
+    /* ============================================================ */
+    /* ============  CURRENCY   VALUE-HELP  HANDLERS  ==============*/
+    /* ============================================================ */
+    async onCurrValueHelpRequest(oEvt) {
+        this._oCurrInput = oEvt.getSource();                       // remember control
+        const oBind      = this._oCurrInput.getBinding("selectedKey") ||
+                        this._oCurrInput.getBinding("value");
+        this._currPath   = oBind ? oBind.getPath()  : "/GasCurr";
+        this._currModel  = oBind ? oBind.getModel() : null;
+    
+        if (!this._oCurrVHD) {                                     // lazy-load once
+        this._oCurrVHD = await sap.ui.core.Fragment.load({
+            name      : "tripjournal.tripjournalui.view.CurrencyValueHelpDialog",
+            controller: this
+        });
+        this.getView().addDependent(this._oCurrVHD);
+    
+        // bind internal table when available
+        this._oCurrVHD.getTableAsync().then(oTable => {
+            oTable.setModel(this.getView().getModel());            // share ODataModel
+            const fnBind = oTable.bindRows ? this._bindCurrRows : this._bindCurrItems;
+            fnBind.call(this, oTable);
+        });
+        }
+        this._oCurrVHD.open();
+    },
+    
+    _bindCurrRows(oTable) {                    // UI5 table
+        oTable.addColumn(new sap.ui.table.Column({
+          label : "Currency",
+          template : new sap.m.Label({ text : "{Waers}"})
+        }));
+        oTable.bindRows({
+          path   : "/ZbnhCurrencySet",
+          events : { dataReceived : () => this._oCurrVHD.update() }
+        });
+        oTable.attachRowSelectionChange(this._onCurrRowSelect, this);
+      },
+    
+      _bindCurrItems(oTable) {                   // responsive m.Table
+        oTable.addColumn(new sap.m.Column({ header : "Currency" }));
+        oTable.bindItems({
+          path    : "/ZbnhCurrencySet",
+          template: new sap.m.ColumnListItem({
+            cells : [ new sap.m.Label({ text : "{Waers}"}) ]
+          }),
+          events  : { dataReceived : () => this._oCurrVHD.update() }
+        });
+        oTable.attachSelectionChange(this._onCurrRowSelect, this);
+      },
+    
+    _onCurrRowSelect(oEvt){
+        const oCtx = (oEvt.getSource().getSelectedContexts?.()[0]) ||
+                    oEvt.getSource().getContextByIndex(oEvt.getSource().getSelectedIndex());
+        if (oCtx){ this._commitCurrSelection(oCtx.getObject()); }
+    },
+    
+    onCurrFilterBarSearch(oEvt){
+        const sVal = (oEvt.getParameter("selectionSet")[0] || {}).getValue();
+        const oF   = sVal ? new Filter("Waers", FilterOperator.Contains, sVal) : [];
+        this._filterCurrTable(oF);
+      },
+    
+    _filterCurrTable(oFilter){
+        this._oCurrVHD.getTableAsync().then(oTable=>{
+        const sAgg = oTable.bindRows ? "rows" : "items";
+        oTable.getBinding(sAgg).filter(oFilter);
+        this._oCurrVHD.update();
+        });
+    },
+    
+    onCurrVhOk(oEvt){
+        const aTok = oEvt.getParameter("tokens") || [];
+        if (aTok.length){ this._commitCurrSelection({Waers:aTok[0].getKey()}); }
+    },
+    onCurrVhCancel(){ this._oCurrVHD.close(); },
+    onCurrVhAfterClose(){ /* keep instance */ },
+    
+    _commitCurrSelection(oCur){
+        const sKey = oCur.Waers;
+        // write back to the triggering control
+        if (this._oCurrInput.setSelectedKey){         // ComboBox / Select
+            this._oCurrInput.setSelectedKey(sKey);
+        } else {
+            this._oCurrInput.setValue(sKey);          // Input fallback
+        }
+        // push into JSON model if dialog lives inside create/edit
+        if (this._currModel){ this._currModel.setProperty(this._currPath, sKey); }
+        this._oCurrVHD.close();
+    },
   });
 });

@@ -9,10 +9,12 @@
         <Input id="_IDGenInput7" value="{edit>/GasPrice}" type="Number"/>
 
         <Label id="_IDGenLabel8" text="Currency"/>
-        <Select id="_IDGenSelect1" selectedKey="{edit>/GasCurr}">
-          <core:Item id="_IDGenItem4" key="EUR" text="EUR"/>
-          <core:Item id="_IDGenItem5" key="HUF" text="HUF"/>
-        </Select>
+        <Input id="inpCurrencyEdit"
+              value="{edit>/GasCurr}"
+              showValueHelp="true"
+              valueHelpRequest=".onCurrValueHelpRequest"
+              required="true"
+              width="100%"/>
       </f:SimpleForm>
     </content>
 
