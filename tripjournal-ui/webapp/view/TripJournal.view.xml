@@ -128,7 +128,10 @@
                                 }"
                                 unit="km"/>
 
-                            <Text id="_IDGenText10" text="{Note}" />
+                            <Text id="_IDGenText10" text="{ path:'Note', formatter:'.formatter.shortNote' }"
+                                  wrapping="false"
+                                  maxLines="1"
+                                  tooltip="{Note}" />
                         </cells>
                     </ColumnListItem>
                 </items>

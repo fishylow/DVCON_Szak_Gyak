@@ -76,7 +76,10 @@
                             }"
                             unit="{Currency}"
                         />
-                        <Text id="_IDGenText20" text="{Note}" />
+                        <Text id="_IDGenText17" text="{ path:'Note', formatter:'.formatter.shortNote' }"
+                              wrapping="false"
+                              maxLines="1"
+                              tooltip="{Note}" />
                     </cells>
                 </ColumnListItem>
             </items>

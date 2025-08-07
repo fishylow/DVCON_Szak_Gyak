@@ -243,6 +243,18 @@ sap.ui.define([], function () {
         formatConsumption: function(fValue) {
             const numValue = _number(fValue);
             return numValue.toFixed(1) + " l/100km";
+        },
+
+        /**
+        * Returns a short preview (57 chars + ellipsis) for table display.
+        * @param {string} s - full note string (≤300 char)
+        * @returns {string} truncated string
+        */
+        shortNote: function (s) {
+            if (!s) { return ""; }
+            const MAX = 58;              // 57 + 1 “…” glyph
+            return s.length > MAX ? s.slice(0, MAX - 1) + "…" : s;
         }
+        
     };
 });
