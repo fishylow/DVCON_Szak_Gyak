@@ -34,21 +34,21 @@
             <core:Item id="_IDGenItem11" key="{months>key}" text="{months>text}"/>
         </Select>
 
-        <Label id="_IDGenLabel" text="Car (License Plate)"/>
+        <Label id="_IDGenLabel" text="{i18n>car}"/>
         <Input id="inpCar"
-               placeholder="e.g. ABC‑123"
+               placeholder="e.g. ABC‑123"
                value="{create>/LicensePlate}"
                showValueHelp="true"
                required="true"
                valueHelpRequest=".onCarValueHelpRequest"/>
 
-        <Label id="_IDGenLabel4" text="KM Start"/>
+        <Label id="_IDGenLabel4" text="{i18n>kmStart}"/>
         <Input id="_IDGenInput3" value="{create>/KmBefore}" type="Number" required="true"/>
 
-        <Label id="_IDGenLabel5" text="Fuel Price"/>
+        <Label id="_IDGenLabel5" text="{i18n>fuelPrice}"/>
         <Input id="_IDGenInput4" value="{create>/GasPrice}" type="Number"/>
 
-        <Label id="_IDGenLabel6" text="Currency"/>
+        <Label id="_IDGenLabel6" text="{i18n>currency}"/>
         <Input id="inpCurrencyCreate"
                 value="{create>/GasCurr}"
                 showValueHelp="true"
@@ -60,12 +60,12 @@
 
     <beginButton>
     <Button id="_IDGenButton1"
-        text="Create"
+        text="{i18n>create}"
         press=".onCreateTrip" />
     </beginButton>
     <endButton>
     <Button id="_IDGenButton2"
-        text="Cancel"
+        text="{i18n>cancel}"
         press=".onCloseCreateDialog" />
     </endButton>
 

@@ -1,37 +1,48 @@
 
-<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core" xmlns:f="sap.ui.layout.form">
-  <Dialog id="_IDGenDialog1" title="Trip Item">
+<core:FragmentDefinition
+  xmlns="sap.m"
+  xmlns:core="sap.ui.core"
+  xmlns:f="sap.ui.layout.form"
+>
+  <Dialog
+    id="editItemDialog"
+    title="Edit Trip Item"
+  >
     <content>
-      <f:SimpleForm id="_IDGenSimpleForm3">
-        <Label id="_IDGenLabel14" text="Date"/>
+      <f:SimpleForm id="_IDGenSimpleForm3" editable="true" layout="ResponsiveGridLayout" labelSpanL="4" emptySpanL="1">
+        <Label id="_IDGenLabel14" text="{i18n>date}"/>
         <DatePicker id="_IDGenDatePicker1" dateValue="{editItem>/Ddate}" displayFormat="yyyy.MM.dd"/>
 
-        <Label id="_IDGenLabel15" text="From"/>
-        <Input id="inpFromAddr2"
-              placeholder="Address ID"
-              value="{editItem>/FromAddr}"            
-              showValueHelp="true"
-              valueHelpRequest=".onAddrValueHelpRequest"/>
-        <Label id="_IDGenLabel16" text="To"/>
-        <Input id="inpToAddr2"
-              placeholder="Address ID"
-              value="{editItem>/ToAddr}"
-              showValueHelp="true"
-              valueHelpRequest=".onAddrValueHelpRequest"/>
+        <Label id="_IDGenLabel15" text="{i18n>from}"/>
+        <Input id="inpFromAddrEdit"
+                placeholder="Address ID"
+                value="{editItem>/FromAddr}"
+                showValueHelp="true"
+                valueHelpRequest=".onAddrValueHelpRequest"
+                liveChange=".onAddrManualChange"/>
 
-        <Label id="_IDGenLabel17" text="Distance (km)"/>
-        <Input id="_IDGenInput13" value="{editItem>/Distance}" type="Number"/>
+        <Label id="_IDGenLabel16" text="{i18n>to}"/>
+        <Input id="inpToAddrEdit"
+                placeholder="Address ID"
+                value="{editItem>/ToAddr}"
+                showValueHelp="true"
+                valueHelpRequest=".onAddrValueHelpRequest"
+                liveChange=".onAddrManualChange"/>
 
-        <Label id="_IDGenLabel18" text="Note"/>
+        <Label id="_IDGenLabel17" text="{i18n>distance}"/>
+        <Input id="_IDGenInput111" value="{editItem>/Distance}" required="true"/>
+
+        <Label id="_IDGenLabel18" text="{i18n>note}"/>
         <TextArea id="_IDGenTextArea1" value="{editItem>/Note}"/>
       </f:SimpleForm>
     </content>
 
     <beginButton>
-      <Button id="_IDGenButton10" text="Save" press=".onUpdateItem"/>
+    <Button id="_IDGenButton10" text="{i18n>save}" press=".onUpdateItem"/>
     </beginButton>
     <endButton>
-      <Button id="_IDGenButton11" text="Cancel" press=".onCancelItemDialog"/>
+    <Button id="_IDGenButton11" text="{i18n>cancel}" press=".onCancelItemDialog"/>
     </endButton>
+
   </Dialog>
 </core:FragmentDefinition>

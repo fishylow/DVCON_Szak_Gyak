@@ -2,10 +2,10 @@
   <Dialog id="_IDGenDialog" title="Trip Item">
     <content>
       <f:SimpleForm id="_IDGenSimpleForm2">
-        <Label id="_IDGenLabel9" text="Date"/>
+        <Label id="_IDGenLabel9" text="{i18n>date}"/>
         <DatePicker id="_IDGenDatePicker" dateValue="{createItem>/Ddate}" displayFormat="yyyy.MM.dd"/>
 
-        <Label id="_IDGenLabel3" text="From"/>
+        <Label id="_IDGenLabel3" text="{i18n>from}"/>
         <Input id="inpFromAddr"
               placeholder="Address ID"
               value="{createItem>/FromAddrDisp}"
@@ -13,7 +13,7 @@
               showValueHelp="true"
               valueHelpRequest=".onAddrValueHelpRequest"
               liveChange=".onAddrManualChange"/>
-        <Label id="_IDGenLabel10" text="To"/>
+        <Label id="_IDGenLabel10" text="{i18n>to}"/>
         <Input id="inpToAddr"
               placeholder="Address ID"
               value="{createItem>/ToAddrDisp}"
@@ -22,19 +22,19 @@
               valueHelpRequest=".onAddrValueHelpRequest"
               liveChange=".onAddrManualChange"/>
 
-        <Label id="_IDGenLabel12" text="Distance (km)"/>
+        <Label id="_IDGenLabel12" text="{i18n>distance}"/>
         <Input id="_IDGenInput10" value="{createItem>/Distance}" required="true"/>
 
-        <Label id="_IDGenLabel13" text="Note"/>
+        <Label id="_IDGenLabel13" text="{i18n>note}"/>
         <TextArea id="_IDGenTextArea" value="{createItem>/Note}"/>
       </f:SimpleForm>
     </content>
 
     <beginButton>
-      <Button id="_IDGenButton8" text="Save" press=".onCreateItem"/>
+      <Button id="_IDGenButton8" text="{i18n>save}" press=".onCreateItem"/>
     </beginButton>
     <endButton>
-      <Button id="_IDGenButton9" text="Cancel" press=".onCancelItemDialog"/>
+      <Button id="_IDGenButton9" text="{i18n>cancel}" press=".onCancelItemDialog"/>
     </endButton>
   </Dialog>
 </core:FragmentDefinition>

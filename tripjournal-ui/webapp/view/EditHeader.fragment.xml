@@ -1,28 +1,36 @@
-<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core" xmlns:f="sap.ui.layout.form">
-  <Dialog title="Edit Header" id="editHeaderDialog">
+<core:FragmentDefinition
+  xmlns="sap.m"
+  xmlns:core="sap.ui.core"
+  xmlns:f="sap.ui.layout.form"
+>
+  <Dialog
+    id="editDialog"
+    title="Edit Trip Header"
+  >
     <content>
-      <f:SimpleForm id="_IDGenSimpleForm1" editable="true" layout="ResponsiveGridLayout">
-        <Label id="_IDGenLabel1" text="KM Start"/>
-        <Input id="_IDGenInput5" value="{edit>/KmBefore}" type="Number"/>
+      <f:SimpleForm id="_IDGenSimpleForm1" editable="true" layout="ResponsiveGridLayout" labelSpanL="4" emptySpanL="1">
+        <Label id="_IDGenLabel1" text="{i18n>kmStart}"/>
+        <Input id="_IDGenInput1" value="{edit>/KmBefore}" type="Number" required="true"/>
 
-        <Label id="_IDGenLabel7" text="Fuel Price"/>
-        <Input id="_IDGenInput7" value="{edit>/GasPrice}" type="Number"/>
+        <Label id="_IDGenLabel7" text="{i18n>fuelPrice}"/>
+        <Input id="_IDGenInput43" value="{edit>/GasPrice}" type="Number" required="true"/>
 
-        <Label id="_IDGenLabel8" text="Currency"/>
+        <Label id="_IDGenLabel8" text="{i18n>currency}"/>
         <Input id="inpCurrencyEdit"
-              value="{edit>/GasCurr}"
-              showValueHelp="true"
-              valueHelpRequest=".onCurrValueHelpRequest"
-              required="true"
-              width="100%"/>
+                value="{edit>/GasCurr}"
+                showValueHelp="true"
+                valueHelpRequest=".onCurrValueHelpRequest"
+                required="true"
+                width="100%"/>
       </f:SimpleForm>
     </content>
 
     <beginButton>
-      <Button id="_IDGenButton5" text="Save" press=".onUpdateHeader"/>
+    <Button id="_IDGenButton5" text="{i18n>save}" press=".onUpdateHeader"/>
     </beginButton>
     <endButton>
-      <Button id="_IDGenButton6" text="Cancel" press=".onCancelHeaderDialog"/>
+    <Button id="_IDGenButton6" text="{i18n>cancel}" press=".onCancelHeaderDialog"/>
     </endButton>
+
   </Dialog>
 </core:FragmentDefinition>
