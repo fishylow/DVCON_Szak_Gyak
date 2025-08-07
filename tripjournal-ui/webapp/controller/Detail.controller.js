@@ -147,6 +147,38 @@ function getBatchId() {
         },
   
         /**
+         * Recalculates and updates the summary model (TotalCost, etc.)
+         * Sums the Cost of all trip items and updates the summary model
+         * Should be called after loading, creating, updating, or deleting trip items
+         *
+         * @function
+         * @name _updateSummary
+         * @memberof tripjournal.tripjournalui.controller.Detail
+         * @private
+         */
+        _updateSummary: function () {
+            const oHdrPath = this.getView().getBindingContext().getPath();
+            const oModel   = this.getView().getModel();
+            const oSum     = this.getView().getModel(CONSTANTS.SUM_PATH);
+
+            oModel.read(oHdrPath, {
+                urlParameters: { $expand: "to_TripItemSet" },
+                success: (oHdr) => {
+                    const aItems = (oHdr.to_TripItemSet && oHdr.to_TripItemSet.results) || [];
+                    // Sum up all item costs, handling missing or non-numeric values
+                    const totalCost = aItems.reduce((sum, oIt) => {
+                        const cost = Number(oIt.Cost);
+                        return sum + (isNaN(cost) ? 0 : cost);
+                    }, 0);
+                    oSum.setProperty("/TotalCost", totalCost);
+                },
+                error: (oErr) => {
+                    this._handleBackendError(oErr, "Failed to update summary");
+                }
+            });
+        },
+  
+        /**
          * Handles route pattern matching when navigating to detail page
          * Binds trip header and items, then calculates summary data
          * 
@@ -190,6 +222,8 @@ function getBatchId() {
                     this.byId("_IDGenButton").setEnabled(bOpen);
                     this.byId("editItemBtn").setEnabled(false);    
                     this.byId("delItemBtn").setEnabled(false);
+                    // Update summary after loading header and items
+                    this._updateSummary();
                   },
                   error: (oErr) => {
                       this._handleBackendError(oErr, "Failed to load trip header");
@@ -346,6 +380,7 @@ function getBatchId() {
                             this._oCreateItemDlg.close();
                             this.byId("tripItemTable").getBinding("items").refresh();
                             this._updateKmAfter();
+                            this._updateSummary();
                         },
                         error: oErr => this._handleBackendError(oErr, "Failed to create item")
                     });
@@ -420,6 +455,7 @@ function getBatchId() {
                             MessageToast.show(oI18n.getText("msgItemUpdated"));
                             this._oEditItemDlg.close();
                             this._updateKmAfter();
+                            this._updateSummary();
                         },
                         error:   oErr => this._handleBackendError(oErr, "Failed to update item")
                     });
@@ -486,6 +522,7 @@ function getBatchId() {
                             this.byId("tripItemTable").removeSelections();
                             this.byId("delItemBtn").setEnabled(false);
                             this._updateKmAfter();
+                            this._updateSummary();
                         },
                         error:   oErr => this._handleBackendError(oErr, "Failed to delete items")
                     });
