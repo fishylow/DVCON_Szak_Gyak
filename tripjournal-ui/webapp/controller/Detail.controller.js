@@ -378,6 +378,20 @@ function getBatchId() {
                             const oI18n = this.getOwnerComponent().getModel("i18n").getResourceBundle();
                             MessageToast.show(oI18n.getText("msgItemCreated"));
                             this._oCreateItemDlg.close();
+                            // Clear model after close
+                            const oHdr = this.getView().getBindingContext().getObject();
+                            const oData = {
+                                Username:     oHdr.Username,
+                                Yyear:        oHdr.Yyear,
+                                Mmonth:       oHdr.Mmonth,
+                                LicensePlate: oHdr.LicensePlate,
+                                FromAddr:     null,
+                                ToAddr:       null,
+                                Ddate:        new Date(),
+                                Distance:     null,
+                                Note:         ""
+                            };
+                            this._oCreateItemDlg.setModel(new JSONModel(oData), "createItem");
                             this.byId("tripItemTable").getBinding("items").refresh();
                             this._updateKmAfter();
                             this._updateSummary();
@@ -454,6 +468,8 @@ function getBatchId() {
                             const oI18n = this.getOwnerComponent().getModel("i18n").getResourceBundle();
                             MessageToast.show(oI18n.getText("msgItemUpdated"));
                             this._oEditItemDlg.close();
+                            // Clear model after close
+                            this._oEditItemDlg.setModel(new JSONModel({}), "editItem");
                             this._updateKmAfter();
                             this._updateSummary();
                         },
@@ -473,7 +489,28 @@ function getBatchId() {
          * @param {sap.ui.base.Event} oEvt - Cancel event
          */
         onCancelItemDialog: function (oEvt) {
+            // Close the dialog
             oEvt.getSource().getParent().close();
+            // Clear dialog models to prevent data persistence
+            if (this._oCreateItemDlg && this._oCreateItemDlg.isOpen()) {
+                // Reset to default structure as in onOpenCreateItemDialog
+                const oHdr = this.getView().getBindingContext().getObject();
+                const oData = {
+                    Username:     oHdr.Username,
+                    Yyear:        oHdr.Yyear,
+                    Mmonth:       oHdr.Mmonth,
+                    LicensePlate: oHdr.LicensePlate,
+                    FromAddr:     null,
+                    ToAddr:       null,
+                    Ddate:        new Date(),
+                    Distance:     null,
+                    Note:         ""
+                };
+                this._oCreateItemDlg.setModel(new JSONModel(oData), "createItem");
+            }
+            if (this._oEditItemDlg && this._oEditItemDlg.isOpen()) {
+                this._oEditItemDlg.setModel(new JSONModel({}), "editItem");
+            }
         },
           
         /**

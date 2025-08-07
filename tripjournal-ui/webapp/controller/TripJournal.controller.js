@@ -210,6 +210,8 @@ sap.ui.define([
                         const oI18n = this.getOwnerComponent().getModel("i18n").getResourceBundle();
                         MessageToast.show(oI18n.getText("msgHeaderUpdated"));                   
                         this._oEditDialog.close();
+                        // Clear model after close
+                        this._oEditDialog.setModel(new JSONModel({}), "edit");
                     },
                     error: oErr => this._handleBackendError(oErr, "Failed to update header")
                 });
@@ -261,6 +263,16 @@ sap.ui.define([
          */
         onCloseCreateDialog: function () {
             this._oCreateDialog.close();
+            // Clear model after close to prevent data persistence
+            const oData = {
+                Yyear: new Date().getFullYear(),
+                Mmonth: ("0" + (new Date().getMonth() + 1)).slice(-2),
+                LicensePlate: "",
+                KmBefore: 0,
+                GasPrice: 0,
+                GasCurr: CONSTANTS.DEFAULT_CURRENCY
+            };
+            this._oCreateDialog.setModel(new JSONModel(oData), "create");
         },
   
         /**
@@ -272,7 +284,23 @@ sap.ui.define([
          * @param {sap.ui.base.Event} oEvt - Cancel event
          */
         onCancelHeaderDialog: function (oEvt) {
+            // Close the dialog
             oEvt.getSource().getParent().close();
+            // Clear dialog models to prevent data persistence
+            if (this._oCreateDialog && this._oCreateDialog.isOpen()) {
+                const oData = {
+                    Yyear: new Date().getFullYear(),
+                    Mmonth: ("0" + (new Date().getMonth() + 1)).slice(-2),
+                    LicensePlate: "",
+                    KmBefore: 0,
+                    GasPrice: 0,
+                    GasCurr: CONSTANTS.DEFAULT_CURRENCY
+                };
+                this._oCreateDialog.setModel(new JSONModel(oData), "create");
+            }
+            if (this._oEditDialog && this._oEditDialog.isOpen()) {
+                this._oEditDialog.setModel(new JSONModel({}), "edit");
+            }
         },
         
         /**
@@ -308,6 +336,16 @@ sap.ui.define([
                     const oI18n = this.getOwnerComponent().getModel("i18n").getResourceBundle();
                     MessageToast.show(oI18n.getText("msgTripCreated"));
                     this._oCreateDialog.close();
+                    // Clear model after close
+                    const oData = {
+                        Yyear: new Date().getFullYear(),
+                        Mmonth: ("0" + (new Date().getMonth() + 1)).slice(-2),
+                        LicensePlate: "",
+                        KmBefore: 0,
+                        GasPrice: 0,
+                        GasCurr: CONSTANTS.DEFAULT_CURRENCY
+                    };
+                    this._oCreateDialog.setModel(new JSONModel(oData), "create");
                     // Refresh header list
                     this.byId("tripHeaderTable")
                         .getBinding("items")
@@ -683,7 +721,11 @@ sap.ui.define([
           });
         
           this._oChangeStatDlg.close();
-        },
+          // Clear the Note field after close
+          const sKeyDlgId_Confirm = this._fragId;
+          const oNoteArea_Confirm = Fragment.byId(sKeyDlgId_Confirm, "statusNote");
+          if (oNoteArea_Confirm) { oNoteArea_Confirm.setValue(""); }
+      },
       
       /**
        * Cancels status change dialog
@@ -692,7 +734,13 @@ sap.ui.define([
        * @name onChangeStatusCancel
        * @memberof tripjournal.tripjournalui.controller.TripJournal
        */
-      onChangeStatusCancel: function () { this._oChangeStatDlg.close(); },
+      onChangeStatusCancel: function () {
+          this._oChangeStatDlg.close();
+          // Clear the Note field after close
+          const sKeyDlgId_Cancel = this._fragId;
+          const oNoteArea_Cancel = Fragment.byId(sKeyDlgId_Cancel, "statusNote");
+          if (oNoteArea_Cancel) { oNoteArea_Cancel.setValue(""); }
+      },
   
       /**
        * Opens currency value help dialog
