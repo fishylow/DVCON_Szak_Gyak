@@ -475,7 +475,7 @@ sap.ui.define([
   
               // bind the internal table after it's ready
               this._oCarVHD.getTableAsync().then(oTable => {
-                  oTable.setModel(this.getView().getModel());  // ODataModel
+                  oTable.setModel(this.getView().getModel());  
                   const fnBind = oTable.bindRows ? this._bindCarRows : this._bindCarItems;
                   fnBind.call(this, oTable);
               });
@@ -590,9 +590,9 @@ sap.ui.define([
       _onCarRowSelect(oEvt) {
           let oCtx;
           const oSrc = oEvt.getSource();
-          if (oSrc.getSelectedContexts) {                   // sap.ui.table.Table
+          if (oSrc.getSelectedContexts) {                   
               oCtx = oSrc.getSelectedContexts()[0];
-          } else {                                          // sap.m.Table
+          } else {                                          
               const iSel = oSrc.getSelectedIndex();
               oCtx = iSel >= 0 ? oSrc.getContextByIndex(iSel) : null;
           }
@@ -659,9 +659,9 @@ sap.ui.define([
        */
       onOpenChangeStatusDialog: async function () {
           if (!this._oChangeStatDlg) {
-              this._fragId        = "changeStatusFrag";              // <── save it
+              this._fragId        = "changeStatusFrag";              
               this._oChangeStatDlg = await Fragment.load({
-                id         : this._fragId,                           // ⭐ NEW
+                id         : this._fragId,                           
                 name       : "tripjournal.tripjournalui.view.ChangeStatusDialog",
                 controller : this
               });

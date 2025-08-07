@@ -578,9 +578,9 @@ function getBatchId() {
          */
         async onAddrValueHelpRequest(oEvt) {
           this._oAddrInput = oEvt.getSource();
-          const oBind = this._oAddrInput.getBinding("value");   // value now bound to ...Disp
-          this._addrDispPath = oBind ? oBind.getPath()  : "/FromAddrDisp";  // e.g. "/FromAddrDisp"
-          this._addrIdPath   = this._addrDispPath.replace(/Disp$/, "");     // -> "/FromAddr"
+          const oBind = this._oAddrInput.getBinding("value");   
+          this._addrDispPath = oBind ? oBind.getPath()  : "/FromAddrDisp";  
+          this._addrIdPath   = this._addrDispPath.replace(/Disp$/, "");     
           this._addrModel    = oBind ? oBind.getModel() : null; 
   
             // Lazy-load dialog once
@@ -739,7 +739,7 @@ function getBatchId() {
           if (aTokens.length) {
             this._commitAddrSelection({
               Id:   aTokens[0].getKey(),
-              Name: aTokens[0].getText()  // ensure we pass the label, too
+              Name: aTokens[0].getText()  
             });
           }
         },
@@ -785,8 +785,8 @@ function getBatchId() {
         
           // set both display and ID in the model so we still post the numeric ID
           if (this._addrModel) {
-            this._addrModel.setProperty(this._addrDispPath, sName);     // e.g. "/FromAddrDisp"
-            this._addrModel.setProperty(this._addrIdPath,   Number(sId)); // e.g. "/FromAddr"
+            this._addrModel.setProperty(this._addrDispPath, sName);     
+            this._addrModel.setProperty(this._addrIdPath,   Number(sId)); 
           }
         
           this._oAddrVHD.close();
@@ -803,10 +803,10 @@ function getBatchId() {
          */
         onAddrManualChange: function (oEvt) {
           const sVal   = (oEvt.getParameter("value") || "").trim();
-          const oBind  = oEvt.getSource().getBinding("value"); // bound to ...Disp
+          const oBind  = oEvt.getSource().getBinding("value"); 
           const oModel = oBind.getModel();
-          const sDisp  = oBind.getPath();             // "/FromAddrDisp" or "/ToAddrDisp"
-          const sId    = sDisp.replace(/Disp$/, "");  // "/FromAddr" or "/ToAddr"
+          const sDisp  = oBind.getPath();             
+          const sId    = sDisp.replace(/Disp$/, "");  
         
           // Always keep the typed text in the *display* property
           oModel.setProperty(sDisp, sVal);
