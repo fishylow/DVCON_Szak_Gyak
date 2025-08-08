@@ -5,25 +5,25 @@
     xmlns:core="sap.ui.core">
 
   <ValueHelpDialog id="currVHD"
-        title="Select Currency"
+        title="{i18n>vh.curr.title}"
         key="Waers"
         supportRanges="false"
         supportMultiselect="false"
         ok=".onCurrVhOk"
         cancel=".onCurrVhCancel"
-        afterClose=".onCurrVhAfterClose">
-
-    <filterBar>
-      <fb:FilterBar id="fbCurr" search=".onCurrFilterBarSearch" isRunningInValueHelpDialog="true">
-        <fb:filterGroupItems>
-          <fb:FilterGroupItem id="fgiWaers"
-                              groupName="__$INTERNAL$"
-                              name="Waers"
-                              label="Currency">
-            <fb:control><m:Input id="_IDGenInput" name="Waers"/></fb:control>
-          </fb:FilterGroupItem>
-        </fb:filterGroupItems>
-      </fb:FilterBar>
-    </filterBar>
-  </ValueHelpDialog>
+        afterClose=".onCurrVhAfterClose"
+        descriptionKey="Ltext"> 
+  <filterBar>
+    <fb:FilterBar id="fbCurr" search=".onCurrFilterBarSearch" isRunningInValueHelpDialog="true">
+      <fb:filterGroupItems>
+        <fb:FilterGroupItem id="fgiWaers"
+                            groupName="__$INTERNAL$"
+                            name="Waers"
+                            label="{i18n>vh.curr.code}">
+          <fb:control><m:Input id="_IDGenInput" name="Waers"/></fb:control>
+        </fb:FilterGroupItem>
+      </fb:filterGroupItems>
+    </fb:FilterBar>
+  </filterBar>
+</ValueHelpDialog>
 </core:FragmentDefinition>

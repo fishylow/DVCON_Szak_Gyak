@@ -254,6 +254,20 @@ sap.ui.define([], function () {
             if (!s) { return ""; }
             const MAX = 58;              // 57 + 1 “…” glyph
             return s.length > MAX ? s.slice(0, MAX - 1) + "…" : s;
+        },
+
+        // currency name via shared cache model (loaded once in controller)
+        currName: function (sWaers) {
+            if (!sWaers) return "";
+            const oCache = sap.ui.getCore().getModel("currCache");
+            const m = oCache && oCache.getProperty("/map");
+            const e = m && m[sWaers];
+            return e;
+        },
+        
+        formatGasPriceDisplay: function (fPrice) {
+            const n = Number(fPrice);
+            return isNaN(n) ? "" : n.toFixed(3);
         }
         
     };

@@ -56,7 +56,7 @@
                     path : '/TripHeaderSet',
                     parameters : {
                         expand  : 'to_TripItemSet',                              
-                        select  : 'Username,Yyear,Mmonth,LicensePlate,KmBefore,Status,Note,to_TripItemSet/Distance'
+                        select  : 'Username,Yyear,Mmonth,LicensePlate,KmBefore,Status,Note,GasPrice,GasCurr,to_TripItemSet/Distance'
                     },
                         sorter : { path : 'Yyear', descending : true }
                     }"
@@ -87,6 +87,7 @@
                     <Column id="_IDGenColumn"><Text id="_IDGenText" text="{i18n>colLicensePlate}" /></Column>
                     <Column id="_IDGenColumn1"><Text id="_IDGenText1" text="{i18n>colDate}" /></Column>
                     <Column id="_IDGenColumn2" minScreenWidth="Tablet" demandPopin="true"><Text id="_IDGenText2" text="{i18n>colStatus}" /></Column>
+                    <Column id="_IDGenColumn14" minScreenWidth="Tablet" demandPopin="true" hAlign="End"><Text id="_IDGenText20" text="{i18n>colAvgGasPrice}" /></Column>
                     <Column id="_IDGenColumn3" minScreenWidth="Tablet" demandPopin="true" hAlign="End"><Text id="_IDGenText3" text="{i18n>colItemCount}" /></Column>
                     <Column id="_IDGenColumn4" minScreenWidth="Desktop" demandPopin="true" hAlign="End"><Text id="_IDGenText4" text="{i18n>colKmBefore}" /></Column>
                     <Column id="_IDGenColumn5" minScreenWidth="Desktop" demandPopin="true" hAlign="End"><Text id="_IDGenText5" text="{i18n>colKmAfter}" /></Column>
@@ -110,6 +111,12 @@
                                     formatter: '.formatter.formatStatusState'
                                 }"
                             />
+                            <ObjectNumber id="_IDGenObjectNumber4"
+                                number="{
+                                    parts: ['GasPrice'],
+                                    formatter: '.formatter.formatGasPriceDisplay'
+                                }"
+                                unit="{GasCurr}" />
                             <Text id="_IDGenText9" text="{
                                 parts: ['to_TripItemSet'],
                                 formatter: '.formatter.formatItemCount'

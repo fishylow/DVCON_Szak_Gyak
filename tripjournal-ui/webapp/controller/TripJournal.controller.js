@@ -52,6 +52,36 @@ sap.ui.define([
               }));
           this.getView().setModel(new JSONModel(aMonths), "months");
       },
+
+      _preloadCurrencyCache: function () {
+        // shared cache model (code -> record), if you want to show names later
+        const oCache = sap.ui.getCore().getModel("currCache") || new sap.ui.model.json.JSONModel({ map: {} });
+        sap.ui.getCore().setModel(oCache, "currCache");
+      
+        const oModel = this.getOwnerComponent() && this.getOwnerComponent().getModel();
+        if (!oModel) { 
+          // model not ready yet, retry next tick
+          setTimeout(this._preloadCurrencyCache.bind(this), 0);
+          return;
+        }
+      
+        oModel.metadataLoaded().then(() => {
+          oModel.read("/ZbnhCurrencySet", {
+            success: (oData) => {
+              const m = {};
+              (oData.results || []).forEach(r => { m[r.Waers] = r; });
+              oCache.setProperty("/map", m);
+              oCache.setProperty("/stamp", Date.now());
+              const oTable = this.byId("tripHeaderTable");
+              oTable && oTable.getBinding("items")?.refresh(true);
+            },
+            error:  (oErr) => {
+              // optional: dev log; don’t block the app on this
+              jQuery.sap.log.error("Failed to preload currencies", oErr);
+            }
+          });
+        });
+      },
   
         /**
          * Initializes the TripJournal controller
@@ -63,6 +93,7 @@ sap.ui.define([
          */
         onInit: function () {
           this._initYearMonthModels();
+          this._preloadCurrencyCache();
         },
   
         /**
@@ -751,27 +782,52 @@ sap.ui.define([
        * @param {sap.ui.base.Event} oEvt - Value help request event
        */
       async onCurrValueHelpRequest(oEvt) {
-          this._oCurrInput = oEvt.getSource();
-          const oBind      = this._oCurrInput.getBinding("selectedKey") ||
-                          this._oCurrInput.getBinding("value");
-          this._currPath   = oBind ? oBind.getPath()  : "/GasCurr";
-          this._currModel  = oBind ? oBind.getModel() : null;
+        this._oCurrInput = oEvt.getSource();
+        // keep binding path/model to write back to JSON model (create/edit)
+        const oBind = this._oCurrInput.getBinding("value");
+        this._currPath  = oBind ? oBind.getPath()   : "/GasCurr";
+        this._currModel = oBind ? oBind.getModel() : null;
       
-          if (!this._oCurrVHD) {
+        if (!this._oCurrVHD) {
           this._oCurrVHD = await sap.ui.core.Fragment.load({
-              name      : "tripjournal.tripjournalui.view.CurrencyValueHelpDialog",
-              controller: this
+            name: "tripjournal.tripjournalui.view.CurrencyValueHelpDialog",
+            controller: this
           });
           this.getView().addDependent(this._oCurrVHD);
+          this._oCurrVHD.setSupportMultiselect(false);
       
-          // bind internal table when available
+          // bind inner table once created
           this._oCurrVHD.getTableAsync().then(oTable => {
-              oTable.setModel(this.getView().getModel());
-              const fnBind = oTable.bindRows ? this._bindCurrRows : this._bindCurrItems;
-              fnBind.call(this, oTable);
+            oTable.setModel(this.getView().getModel()); // main OData v2 model
+      
+            if (oTable.bindRows) {
+              // UI.table
+              oTable.addColumn(new sap.ui.table.Column({label: "{i18n>vh.curr.code}",  template: new sap.m.Label({text: "{Waers}"})}));
+              oTable.addColumn(new sap.ui.table.Column({label: "{i18n>vh.curr.short}", template: new sap.m.Label({text: "{Ktext}"})}));
+              oTable.addColumn(new sap.ui.table.Column({label: "{i18n>vh.curr.long}",  template: new sap.m.Label({text: "{Ltext}"})}));
+              oTable.bindRows({ path: "/ZbnhCurrencySet", events: { dataReceived: () => this._oCurrVHD.update() } });
+              oTable.attachRowSelectionChange(this._onCurrRowSelect, this);
+            } else {
+              // m.Table
+              oTable.addColumn(new sap.m.Column({header: new sap.m.Label({text: "{i18n>vh.curr.code}"})}));
+              oTable.addColumn(new sap.m.Column({header: new sap.m.Label({text: "{i18n>vh.curr.short}"})}));
+              oTable.addColumn(new sap.m.Column({header: new sap.m.Label({text: "{i18n>vh.curr.long}"})}));
+              oTable.bindItems({
+                path: "/ZbnhCurrencySet",
+                template: new sap.m.ColumnListItem({
+                  cells: [
+                    new sap.m.Label({text: "{Waers}"}),
+                    new sap.m.Label({text: "{Ktext}"}),
+                    new sap.m.Label({text: "{Ltext}"})
+                  ]
+                }),
+                events: { dataReceived: () => this._oCurrVHD.update() }
+              });
+              oTable.attachSelectionChange(this._onCurrRowSelect, this);
+            }
           });
-          }
-          this._oCurrVHD.open();
+        }
+        this._oCurrVHD.open();
       },
       
       /**
@@ -825,10 +881,16 @@ sap.ui.define([
        * @private
        * @param {sap.ui.base.Event} oEvt - Row selection event
        */
-      _onCurrRowSelect(oEvt){
-          const oCtx = (oEvt.getSource().getSelectedContexts?.()[0]) ||
-                      oEvt.getSource().getContextByIndex(oEvt.getSource().getSelectedIndex());
-          if (oCtx){ this._commitCurrSelection(oCtx.getObject()); }
+      _onCurrRowSelect(oEvt) {
+        let oCtx;
+        const oSrc = oEvt.getSource();
+        if (oSrc.getSelectedContexts) {
+          oCtx = oSrc.getSelectedContexts()[0];
+        } else {
+          const iSel = oSrc.getSelectedIndex();
+          oCtx = iSel >= 0 ? oSrc.getContextByIndex(iSel) : null;
+        }
+        if (oCtx) this._commitCurrSelection(oCtx.getObject());
       },
       
       /**
@@ -839,11 +901,19 @@ sap.ui.define([
        * @memberof tripjournal.tripjournalui.controller.TripJournal
        * @param {sap.ui.base.Event} oEvt - Search event
        */
-      onCurrFilterBarSearch(oEvt){
-          const sVal = (oEvt.getParameter("selectionSet")[0] || {}).getValue();
-          const oF   = sVal ? new Filter("Waers", FilterOperator.Contains, sVal) : [];
-          this._filterCurrTable(oF);
-        },
+      onCurrFilterBarSearch(oEvt) {
+        const aCtrls = oEvt.getParameter("selectionSet") || [];
+        const aFlt = aCtrls.reduce((acc,c)=>{
+          if (c.getValue()) acc.push(new sap.ui.model.Filter(c.getName(), sap.ui.model.FilterOperator.Contains, c.getValue()));
+          return acc;
+        }, []);
+        const oFilter = aFlt.length ? new sap.ui.model.Filter({filters:aFlt, and:true}) : [];
+        this._oCurrVHD.getTableAsync().then(oTable=>{
+          const sAgg = oTable.bindRows ? "rows" : "items";
+          oTable.getBinding(sAgg).filter(oFilter);
+          this._oCurrVHD.update();
+        });
+      },
       
       /**
        * Applies filters to currency table
@@ -870,9 +940,12 @@ sap.ui.define([
        * @memberof tripjournal.tripjournalui.controller.TripJournal
        * @param {sap.ui.base.Event} oEvt - OK event
        */
-      onCurrVhOk(oEvt){
-          const aTok = oEvt.getParameter("tokens") || [];
-          if (aTok.length){ this._commitCurrSelection({Waers:aTok[0].getKey()}); }
+      onCurrVhOk(oEvt) {
+        const aTokens = oEvt.getParameter("tokens") || [];
+        if (aTokens.length) {
+          // token key is Waers, text is Ltext (thanks to descriptionKey)
+          this._commitCurrSelection({ Waers: aTokens[0].getKey(), Ltext: aTokens[0].getText() });
+        }
       },
   
       /**
@@ -902,17 +975,13 @@ sap.ui.define([
        * @private
        * @param {Object} oCur - Selected currency object
        */
-      _commitCurrSelection(oCur){
-          const sKey = oCur.Waers;
-          // write back to the triggering control
-          if (this._oCurrInput.setSelectedKey){
-              this._oCurrInput.setSelectedKey(sKey);
-          } else {
-              this._oCurrInput.setValue(sKey);
-          }
-          // push into JSON model if dialog lives inside create/edit
-          if (this._currModel){ this._currModel.setProperty(this._currPath, sKey); }
-          this._oCurrVHD.close();
+      _commitCurrSelection(oCurr) {
+        const sCode = oCurr.Waers;
+        this._oCurrInput.setValue(sCode);
+        if (this._currModel) {
+          this._currModel.setProperty(this._currPath, sCode);
+        }
+        this._oCurrVHD.close();
       },
   
       /**
