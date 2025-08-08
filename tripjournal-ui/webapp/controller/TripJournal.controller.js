@@ -94,6 +94,7 @@ sap.ui.define([
         onInit: function () {
           this._initYearMonthModels();
           this._preloadCurrencyCache();
+          this.getView().setModel(new JSONModel({ period: null }), "filters");
         },
   
         /**
@@ -128,22 +129,27 @@ sap.ui.define([
         onFilterTrips: function () {
             const oView = this.getView();
             const sStatus = oView.byId("selStatus").getSelectedKey();
-            const oTable = oView.byId("tripHeaderTable");
+            const oTable  = oView.byId("tripHeaderTable");
             const oBinding = oTable.getBinding("items");
-  
-            const sYear   = oView.byId("yearFilter").getSelectedKey();
-            const sMonth  = oView.byId("monthFilter").getSelectedKey();
-            const sPlate  = oView.byId("licensePlateFilter").getValue().toUpperCase();
-  
+          
+            const d = oView.getModel("filters").getProperty("/period"); // Date or null
             const aFilters = [];
-            if (sStatus) {  aFilters.push(new Filter("Status",        FilterOperator.EQ, sStatus)); }
-            if (sPlate) {   aFilters.push(new Filter("LicensePlate",  FilterOperator.Contains, sPlate)); }
-            if (sYear)  {   aFilters.push(new Filter("Yyear",         FilterOperator.EQ, sYear));  }
-            if (sMonth) {   aFilters.push(new Filter("Mmonth",        FilterOperator.EQ, sMonth)); }
-  
-          oBinding.filter(aFilters);
-  
-        },
+          
+            if (sStatus) aFilters.push(new sap.ui.model.Filter("Status", sap.ui.model.FilterOperator.EQ, sStatus));
+          
+            // existing plate filter unchanged
+            const sPlate = oView.byId("licensePlateFilter").getValue().toUpperCase();
+            if (sPlate) aFilters.push(new sap.ui.model.Filter("LicensePlate", sap.ui.model.FilterOperator.Contains, sPlate));
+          
+            if (d instanceof Date && !isNaN(+d)) {
+              const y = String(d.getFullYear());
+              const m = String(d.getMonth() + 1).padStart(2,"0");
+              aFilters.push(new sap.ui.model.Filter("Yyear",  sap.ui.model.FilterOperator.EQ, y));
+              aFilters.push(new sap.ui.model.Filter("Mmonth", sap.ui.model.FilterOperator.EQ, m));
+            }
+          
+            oBinding.filter(aFilters);
+          },
   
         /**
          * Clears all filters and refreshes the table binding
@@ -154,20 +160,45 @@ sap.ui.define([
          * @memberof tripjournal.tripjournalui.controller.TripJournal
          */
         onClearFilter: function () {
-            const oView = this.getView();
-            
-            // Reset all filter controls
-            oView.byId("yearFilter").setSelectedKey("");
-            oView.byId("monthFilter").setSelectedKey("");
-            oView.byId("licensePlateFilter").setValue("");
-            oView.byId("selStatus").setSelectedKey("");
-  
-  
-            // Clear table filters
-            const oTable = oView.byId("tripHeaderTable");
-            const oBinding = oTable.getBinding("items");
-            oBinding.filter([]);
-        },
+            const oView   = this.getView();
+            const oModel  = this.getOwnerComponent().getModel();
+            const oTable  = oView.byId("tripHeaderTable");
+            const oBind   = oTable && oTable.getBinding("items");
+          
+            const oDP     = oView.byId("periodFilter");     
+            const oStatus = oView.byId("selStatus");        
+            const oPlate  = oView.byId("licensePlateFilter");
+          
+            const oFiltModel = oView.getModel("filters");
+            if (oFiltModel) {
+              oFiltModel.setProperty("/period", null); 
+            }
+            if (oDP)     { oDP.setValue(""); }
+            if (oStatus) { oStatus.setSelectedKey(""); }
+            if (oPlate)  { oPlate.setValue(""); }
+          
+            const clearBinding = () => {
+              if (!oBind) { return; }
+              oBind.filter([]);           
+              oBind.sort([]);             
+
+              const aCols = oTable.getColumns ? oTable.getColumns() : [];
+              aCols.forEach(function (oCol) {
+                if (oCol.setFiltered)     { oCol.setFiltered(false); }
+                if (oCol.setFilterValue)  { oCol.setFilterValue(""); }
+                if (oCol.setSorted)       { oCol.setSorted(false); }
+                if (oCol.setSortIndicator){ oCol.setSortIndicator(sap.ui.core.SortOrder.None); }
+              });
+          
+              if (oBind.refresh) { oBind.refresh(true); }
+            };
+          
+            if (oModel && oModel.metadataLoaded) {
+              oModel.metadataLoaded().then(clearBinding);
+            } else {
+              clearBinding();
+            }
+          },
   
         /**
          * Handles selection change in the trip header table
@@ -267,12 +298,12 @@ sap.ui.define([
       
                     // Initialize JSONModel for the input fields with default values
                     const oData = {
-                        Yyear: new Date().getFullYear(),
-                        Mmonth: ("0" + (new Date().getMonth() + 1)).slice(-2),
+                        PeriodDate  : new Date(),
                         LicensePlate: "",
-                        KmBefore: 0,
-                        GasPrice: 0,
-                        GasCurr: CONSTANTS.DEFAULT_CURRENCY
+                        KmBefore    : 0,
+                        GasPrice    : 0,
+                        GasCurr     : CONSTANTS.DEFAULT_CURRENCY,
+                        Note        : ""
                     };
                     const oJSON = new JSONModel(oData);
                     oDialog.setModel(oJSON, "create");
@@ -346,19 +377,23 @@ sap.ui.define([
             // Read data from the model
             const oCreate = this._oCreateDialog.getModel("create").getData();
         
-            const sGasPrice = Number(oCreate.GasPrice || 0).toFixed(3);          
+            const sGasPrice = Number(oCreate.GasPrice || 0).toFixed(3);   
+            const d = (oCreate.PeriodDate instanceof Date && !isNaN(+oCreate.PeriodDate))
+                ? oCreate.PeriodDate : new Date();
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, "0");       
             // Compose payload for backend
             const oPayload = {
-                Username:     getCurrentUser(),         
-                Yyear:        Number(oCreate.Yyear),
-                Mmonth:       oCreate.Mmonth,
+                Username    : getCurrentUser(),
+                Yyear       : Number(y),
+                Mmonth      : m,
                 LicensePlate: oCreate.LicensePlate,
-                KmBefore:     Number(oCreate.KmBefore),
-                KmAfter:      Number(oCreate.KmBefore),
-                GasPrice:     sGasPrice,
-                GasCurr:      oCreate.GasCurr,
-                Status:       CONSTANTS.DEFAULT_STATUS,
-                Note:         ""
+                KmBefore    : Number(oCreate.KmBefore),
+                KmAfter     : Number(oCreate.KmBefore),
+                GasPrice    : Number(oCreate.GasPrice).toFixed(3),
+                GasCurr     : oCreate.GasCurr,
+                Status      : CONSTANTS.DEFAULT_STATUS,
+                Note        : oCreate.Note || ""
             };
         
             // Create header in backend

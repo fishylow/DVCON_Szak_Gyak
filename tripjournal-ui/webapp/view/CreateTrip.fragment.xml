@@ -10,30 +10,17 @@
   >
     <content>
       <f:SimpleForm id="_IDGenSimpleForm" editable="true" layout="ResponsiveGridLayout" labelSpanL="4" emptySpanL="1">
-        <Label id="_IDGenLabel11" text="{i18n>year}"/>
-        <Select id="createYear"
-                required="true"
-                selectedKey="{create>/Yyear}"
-                forceSelection="true"
-                items="{
-                    path   : 'years>/',
-                    filters: [{ path:'key', operator:'NE', value1:'' }]
-                }">
-            <core:Item id="_IDGenItem10" key="{years>key}" text="{years>text}"/>
-        </Select>
-
-        <Label id="_IDGenLabel19" text="{i18n>month}"/>
-        <Select id="createMonth"
-                required="true"
-                selectedKey="{create>/Mmonth}"
-                forceSelection="true"
-                items="{
-                    path   : 'months>/',
-                    filters: [{ path:'key', operator:'NE', value1:'' }]
-                }">
-            <core:Item id="_IDGenItem11" key="{months>key}" text="{months>text}"/>
-        </Select>
-
+        <Label id="_IDGenLabel19" text="{i18n>create.period.label}" />
+        <DatePicker
+            id="createPeriod"
+            value="{
+              path: 'create>/PeriodDate',
+              type: 'sap.ui.model.type.Date',
+              formatOptions: { pattern: 'MM-y' }
+            }"
+            placeholder="{i18n>create.period.placeholder}"
+            change=".onCreatePeriodChange"
+            class="sapUiSmallMarginBottom"/>
         <Label id="_IDGenLabel" text="{i18n>car}"/>
         <Input id="inpCar"
                placeholder="e.g. ABC‑123"
