@@ -6,7 +6,7 @@
 >
   <Dialog
     id="editItemDialog"
-    title="Edit Trip Item"
+    title="{i18n>editItemDialogTitle}"
   >
     <content>
       <f:SimpleForm id="_IDGenSimpleForm3" editable="true" layout="ResponsiveGridLayout" labelSpanL="4" emptySpanL="1">
@@ -15,7 +15,7 @@
 
         <Label id="_IDGenLabel15" text="{i18n>from}"/>
         <Input id="inpFromAddrEdit"
-                placeholder="Address ID"
+                placeholder="{i18n>addressIdPlaceholder}"
                 value="{editItem>/FromAddr}"
                 showValueHelp="true"
                 valueHelpRequest=".onAddrValueHelpRequest"
@@ -23,7 +23,7 @@
 
         <Label id="_IDGenLabel16" text="{i18n>to}"/>
         <Input id="inpToAddrEdit"
-                placeholder="Address ID"
+                placeholder="{i18n>addressIdPlaceholder}"
                 value="{editItem>/ToAddr}"
                 showValueHelp="true"
                 valueHelpRequest=".onAddrValueHelpRequest"

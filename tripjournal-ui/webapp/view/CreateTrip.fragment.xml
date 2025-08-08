@@ -6,7 +6,7 @@
 >
   <Dialog
     id="createDialog"
-    title="New Trip"
+    title="{i18n>newTripDialogTitle}"
   >
     <content>
       <f:SimpleForm id="_IDGenSimpleForm" editable="true" layout="ResponsiveGridLayout" labelSpanL="4" emptySpanL="1">
@@ -23,7 +23,7 @@
             class="sapUiSmallMarginBottom"/>
         <Label id="_IDGenLabel" text="{i18n>car}"/>
         <Input id="inpCar"
-               placeholder="e.g. ABC‑123"
+               placeholder="{i18n>licensePlate.examplePlaceholder}"
                value="{create>/LicensePlate}"
                showValueHelp="true"
                required="true"

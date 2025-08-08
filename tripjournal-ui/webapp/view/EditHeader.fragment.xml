@@ -5,7 +5,7 @@
 >
   <Dialog
     id="editDialog"
-    title="Edit Trip Header"
+    title="{i18n>editHeaderDialogTitle}"
   >
     <content>
       <f:SimpleForm id="_IDGenSimpleForm1" editable="true" layout="ResponsiveGridLayout" labelSpanL="4" emptySpanL="1">

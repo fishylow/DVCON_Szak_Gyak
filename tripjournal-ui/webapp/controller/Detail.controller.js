@@ -616,10 +616,10 @@ function getBatchId() {
          */
         _bindAddrRows: function (oTable) {
             // Add columns for address display
-            oTable.addColumn(new sap.ui.table.Column({label: "ID",          template: new sap.m.Label({text: "{Id}"})}));
-            oTable.addColumn(new sap.ui.table.Column({label: "Name",        template: new sap.m.Label({text: "{Name}"})}));
-            oTable.addColumn(new sap.ui.table.Column({label: "City",        template: new sap.m.Label({text: "{City}"})}));
-            oTable.addColumn(new sap.ui.table.Column({label: "Post Code",   template: new sap.m.Label({text: "{PostCode}"})}));
+            oTable.addColumn(new sap.ui.table.Column({label: new sap.m.Label({text: "{i18n>vh.addr.id}"}),        template: new sap.m.Label({text: "{Id}"})}));
+            oTable.addColumn(new sap.ui.table.Column({label: new sap.m.Label({text: "{i18n>vh.addr.name}"}),      template: new sap.m.Label({text: "{Name}"})}));
+            oTable.addColumn(new sap.ui.table.Column({label: new sap.m.Label({text: "{i18n>vh.addr.city}"}),      template: new sap.m.Label({text: "{City}"})}));
+            oTable.addColumn(new sap.ui.table.Column({label: new sap.m.Label({text: "{i18n>vh.addr.postcode}"}),  template: new sap.m.Label({text: "{PostCode}"})}));
             
             // Bind rows to address data
             oTable.bindRows({
@@ -642,10 +642,10 @@ function getBatchId() {
          */
         _bindAddrItems: function (oTable) {
             // Add columns for address display
-            oTable.addColumn(new sap.m.Column({header: "ID"}));
-            oTable.addColumn(new sap.m.Column({header: "Name"}));
-            oTable.addColumn(new sap.m.Column({header: "City"}));
-            oTable.addColumn(new sap.m.Column({header: "Post Code"}));
+            oTable.addColumn(new sap.m.Column({header: new sap.m.Label({text: "{i18n>vh.addr.id}"})}));
+            oTable.addColumn(new sap.m.Column({header: new sap.m.Label({text: "{i18n>vh.addr.name}"})}));
+            oTable.addColumn(new sap.m.Column({header: new sap.m.Label({text: "{i18n>vh.addr.city}"})}));
+            oTable.addColumn(new sap.m.Column({header: new sap.m.Label({text: "{i18n>vh.addr.postcode}"})}));
             
             // Bind items to address data
             oTable.bindItems({

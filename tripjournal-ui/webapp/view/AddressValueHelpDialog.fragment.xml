@@ -4,7 +4,7 @@
     xmlns:fb="sap.ui.comp.filterbar"
     xmlns:core="sap.ui.core">
   <ValueHelpDialog id="addrVHD"
-        title="Select Address"
+        title="{i18n>vh.addr.title}"
         supportRanges="false"
         supportMultiselect="false"
         key="Id"                      
@@ -15,13 +15,13 @@
     <filterBar>
       <fb:FilterBar id="_IDGenFilterBar1" search=".onAddrFilterBarSearch" isRunningInValueHelpDialog="true">
         <fb:filterGroupItems>
-          <fb:FilterGroupItem id="_IDGenFilterGroupItem4" groupName="__$INTERNAL$" name="Name"     label="Name">
+          <fb:FilterGroupItem id="_IDGenFilterGroupItem4" groupName="__$INTERNAL$" name="Name"     label="{i18n>vh.addr.name}">
             <fb:control><m:Input id="_IDGenInput8" name="Name"/></fb:control>
           </fb:FilterGroupItem>
-          <fb:FilterGroupItem id="_IDGenFilterGroupItem5" groupName="__$INTERNAL$" name="City"     label="City">
+          <fb:FilterGroupItem id="_IDGenFilterGroupItem5" groupName="__$INTERNAL$" name="City"     label="{i18n>vh.addr.city}">
             <fb:control><m:Input id="_IDGenInput9" name="City"/></fb:control>
           </fb:FilterGroupItem>
-          <fb:FilterGroupItem id="_IDGenFilterGroupItem6" groupName="__$INTERNAL$" name="PostCode" label="Post Code">
+          <fb:FilterGroupItem id="_IDGenFilterGroupItem6" groupName="__$INTERNAL$" name="PostCode" label="{i18n>vh.addr.postcode}">
             <fb:control><m:Input id="_IDGenInput11" name="PostCode"/></fb:control>
           </fb:FilterGroupItem>
         </fb:filterGroupItems>

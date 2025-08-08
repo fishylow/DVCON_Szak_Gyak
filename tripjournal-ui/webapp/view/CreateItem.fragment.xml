@@ -1,5 +1,5 @@
 <core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core" xmlns:f="sap.ui.layout.form">
-  <Dialog id="_IDGenDialog" title="Trip Item">
+  <Dialog id="_IDGenDialog" title="{i18n>tripItemDialogTitle}">
     <content>
       <f:SimpleForm id="_IDGenSimpleForm2">
         <Label id="_IDGenLabel9" text="{i18n>date}"/>
@@ -7,7 +7,7 @@
 
         <Label id="_IDGenLabel3" text="{i18n>from}"/>
         <Input id="inpFromAddr"
-              placeholder="Address ID"
+              placeholder="{i18n>addressIdPlaceholder}"
               value="{createItem>/FromAddrDisp}"
               required="true"
               showValueHelp="true"
@@ -15,7 +15,7 @@
               liveChange=".onAddrManualChange"/>
         <Label id="_IDGenLabel10" text="{i18n>to}"/>
         <Input id="inpToAddr"
-              placeholder="Address ID"
+              placeholder="{i18n>addressIdPlaceholder}"
               value="{createItem>/ToAddrDisp}"
               required="true"
               showValueHelp="true"

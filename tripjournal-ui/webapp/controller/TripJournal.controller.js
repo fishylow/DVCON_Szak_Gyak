@@ -53,6 +53,11 @@ sap.ui.define([
           this.getView().setModel(new JSONModel(aMonths), "months");
       },
 
+      /**
+       * Preloads currency data into a shared cache model to improve lookups.
+       * Triggers a table refresh after cache fill so currency-dependent formatters update.
+       * @private
+       */
       _preloadCurrencyCache: function () {
         // shared cache model (code -> record), if you want to show names later
         const oCache = sap.ui.getCore().getModel("currCache") || new sap.ui.model.json.JSONModel({ map: {} });
@@ -560,10 +565,10 @@ sap.ui.define([
        */
       _bindCarRows(oTable) {
           // columns
-          oTable.addColumn(new sap.ui.table.Column({label: "Plate",        template: new sap.m.Label({text: "{LicensePlate}"})}));
-          oTable.addColumn(new sap.ui.table.Column({label: "Make",         template: new sap.m.Label({text: "{Manufacturer}"})}));
-          oTable.addColumn(new sap.ui.table.Column({label: "Model",        template: new sap.m.Label({text: "{Type}"})}));
-          oTable.addColumn(new sap.ui.table.Column({label: "Consumption",  template: new sap.m.Label({text: "{Gasmilage} l/100km"})}));
+          oTable.addColumn(new sap.ui.table.Column({label: new sap.m.Label({text: "{i18n>vh.car.plate}"}),       template: new sap.m.Label({text: "{LicensePlate}"})}));
+          oTable.addColumn(new sap.ui.table.Column({label: new sap.m.Label({text: "{i18n>vh.car.make}"}),        template: new sap.m.Label({text: "{Manufacturer}"})}));
+          oTable.addColumn(new sap.ui.table.Column({label: new sap.m.Label({text: "{i18n>vh.car.model}"}),       template: new sap.m.Label({text: "{Type}"})}));
+          oTable.addColumn(new sap.ui.table.Column({label: new sap.m.Label({text: "{i18n>vh.car.consumption}"}), template: new sap.m.Label({text: "{Gasmilage} l/100km"})}));
   
           // data
           oTable.bindRows({
@@ -584,10 +589,10 @@ sap.ui.define([
        * @param {sap.m.Table} oTable - Table to bind
        */
       _bindCarItems(oTable) {
-          oTable.addColumn(new sap.m.Column({header: "Plate"}));
-          oTable.addColumn(new sap.m.Column({header: "Make"}));
-          oTable.addColumn(new sap.m.Column({header: "Model"}));
-          oTable.addColumn(new sap.m.Column({header: "Consumption"}));
+          oTable.addColumn(new sap.m.Column({header: new sap.m.Label({text: "{i18n>vh.car.plate}"})}));
+          oTable.addColumn(new sap.m.Column({header: new sap.m.Label({text: "{i18n>vh.car.make}"})}));
+          oTable.addColumn(new sap.m.Column({header: new sap.m.Label({text: "{i18n>vh.car.model}"})}));
+          oTable.addColumn(new sap.m.Column({header: new sap.m.Label({text: "{i18n>vh.car.consumption}"})}));
   
           oTable.bindItems({
               path:     "/ZbnhCarSet",
@@ -876,7 +881,7 @@ sap.ui.define([
        */
       _bindCurrRows(oTable) {
           oTable.addColumn(new sap.ui.table.Column({
-            label : "Currency",
+            label : new sap.m.Label({ text : "{i18n>vh.curr.code}"}),
             template : new sap.m.Label({ text : "{Waers}"})
           }));
           oTable.bindRows({
@@ -896,7 +901,7 @@ sap.ui.define([
        * @param {sap.m.Table} oTable - Table to bind
        */
         _bindCurrItems(oTable) {
-          oTable.addColumn(new sap.m.Column({ header : "Currency" }));
+          oTable.addColumn(new sap.m.Column({ header : new sap.m.Label({text: "{i18n>vh.curr.code}"}) }));
           oTable.bindItems({
             path    : "/ZbnhCurrencySet",
             template: new sap.m.ColumnListItem({

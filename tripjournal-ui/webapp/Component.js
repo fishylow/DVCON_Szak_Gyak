@@ -12,6 +12,10 @@ sap.ui.define([
             ]
         },
 
+        /**
+         * Initializes the UI component.
+         * Sets device model and starts the router.
+         */
         init() {
             // call the base component's init function
             UIComponent.prototype.init.apply(this, arguments);
