@@ -926,15 +926,81 @@ sap.ui.define([
        * @param {Object} oErr - Error object from backend
        * @param {string} sContext - Context description for the error
        */
-      _handleBackendError: function(oErr, sContext) {
-          const oI18n = this.getOwnerComponent().getModel("i18n").getResourceBundle();
-          const sErrorMessage = oErr.message || oErr.responseText || oErr.statusText || "Unknown error";
-          const sFormattedError = oI18n.getText("errorBackendError", [sErrorMessage]);
-          
-          MessageBox.error(sFormattedError, {
-              title: sContext,
-              details: oErr.responseText || oErr.message || ""
-          });
+      _handleBackendError: function (oErr, sContext) {
+        const oI18n = this.getOwnerComponent().getModel("i18n").getResourceBundle();
+      
+        // --- helpers -------------------------------------------------------
+        const parseJSON = (txt) => {
+          try { return JSON.parse(txt); } catch (e) { return null; }
+        };
+        const parseXML = (txt) => {
+          try {
+            const xml = jQuery.parseXML(txt);
+            const $m  = jQuery(xml).find("message");
+            return $m.length ? $m.first().text() : null;
+          } catch (e) { return null; }
+        };
+      
+        // --- extract structured messages from OData error ------------------
+        let raw = oErr && (oErr.responseText || oErr.message || oErr.statusText || "");
+        let mainText = "";
+        let detailsText = "";
+      
+        // 1) JSON body?
+        const j = typeof raw === "string" ? parseJSON(raw) : null;
+        if (j) {
+          // classic GW JSON: error.innererror.errordetails[]
+          const aDetails =
+            j?.error?.innererror?.errordetails ||
+            j?.error?.details ||
+            (Array.isArray(j) ? j : null); // some stacks log just the array
+      
+          if (Array.isArray(aDetails) && aDetails.length) {
+            // prefer items with type === "Error", else take all
+            const errorsOnly = aDetails.filter(d => (d.type || d.severity || "").toLowerCase() === "error");
+            const bucket = errorsOnly.length ? errorsOnly : aDetails;
+      
+            const msgs = bucket
+              .map(d => d.message || d.msg || d.description || "")
+              .filter(Boolean);
+      
+            if (msgs.length) {
+              mainText = msgs[0];
+              // include code + message lines in details
+              detailsText = bucket.map(d => {
+                const code = d.code || d.messageId || "";
+                const msg  = d.message || "";
+                const tgt  = (d.target || d.targets || [])[0] || "";
+                return [code, msg, tgt].filter(Boolean).join(" — ");
+              }).join("\n");
+            }
+          }
+      
+          // fallback: top-level single message (OData std)
+          if (!mainText) {
+            mainText = j?.error?.message?.value || j?.error?.message || "";
+          }
+        }
+      
+        // 2) XML body?
+        if (!mainText && typeof raw === "string" && raw.trim().startsWith("<")) {
+          const m = parseXML(raw);
+          if (m) { mainText = m; }
+        }
+      
+        // 3) last-ditch: HTTP text
+        if (!mainText) { mainText = oErr.message || oErr.statusText || "HTTP error"; }
+        if (!detailsText) { detailsText = (typeof raw === "string" ? raw : "") || (oErr.responseText || ""); }
+      
+        // --- show ----------------------------------------------------------
+        const sUserMsg = oI18n.getText("errorBackendError", [mainText]); // keep your i18n wrapper
+        sap.m.MessageBox.error(sUserMsg, {
+          title  : sContext,
+          details: detailsText
+        });
+      
+        // optional: log full object for devs
+        jQuery.sap.log.error("OData error", oErr);
       }
     });
   });
