@@ -424,9 +424,7 @@ sap.ui.define([
                 }.bind(this),
                 error: function (oErr) {
                     const oI18n = this.getOwnerComponent().getModel("i18n").getResourceBundle();
-                    MessageBox.error(
-                        oI18n.getText("msgCreationFailed", [oErr.message || oErr.responseText])
-                    );
+                    this._handleBackendError(oErr, "Error")
                 }.bind(this)
             });
         },
