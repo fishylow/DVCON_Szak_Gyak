@@ -11,20 +11,20 @@
                  <ComboBox id="selStatus"
                             width="10rem"
                             placeholder="{i18n>statusPlaceholder}"
-                            change="onFilterTrips"              
+                            change="onFilterTrips"
                             items="{
-                                path: '/ZbnhStatusSet',
-                                sorter: { path: 'Text' }
+                                path: 'statusList>/items'
                             }">
-                        <core:Item id="_IDGenItem2" key="{Code}" text="{Text}" />
-                    </ComboBox>
+                    <core:Item id="_IDGenItem" key="{statusList>Code}" text="{statusList>Text}" />
+                </ComboBox>
+
 
                 <DatePicker id="periodFilter"
                             width="11rem"
                             value="{
                             path: 'filters>/period',
                             type: 'sap.ui.model.type.Date',
-                            formatOptions: { pattern: 'MM-y' }
+                            formatOptions: { pattern: 'yyyy.MM' }
                             }"
                             change=".onFilterTrips" />
 

@@ -87,6 +87,22 @@ sap.ui.define([
           });
         });
       },
+
+      _initStatusModel: function () {
+        const oI18n = this.getOwnerComponent().getModel("i18n").getResourceBundle();
+        const oJSON = new sap.ui.model.json.JSONModel({ items: [] });
+        this.getView().setModel(oJSON, "statusList");
+
+        const oModel = this.getOwnerComponent().getModel();
+        oModel.read("/ZbnhStatusSet", {
+          success: (oData) => {
+            const a = [{ Code: "", Text: oI18n.getText("filter.noneStatus") }]
+                      .concat(oData.results || []);
+            oJSON.setProperty("/items", a);
+          }
+        });
+      },
+
   
         /**
          * Initializes the TripJournal controller
@@ -99,6 +115,7 @@ sap.ui.define([
         onInit: function () {
           this._initYearMonthModels();
           this._preloadCurrencyCache();
+          this._initStatusModel();
           this.getView().setModel(new JSONModel({ period: null }), "filters");
         },
   
@@ -617,16 +634,17 @@ sap.ui.define([
        * @param {sap.ui.base.Event} oEvt - Search event
        */
       onCarFilterBarSearch(oEvt) {
-          const aCtrls  = oEvt.getParameter("selectionSet") || [];
+          const aCtrls = oEvt.getParameter("selectionSet") || [];
           const aFlt = aCtrls.reduce((a,c)=>{
-              if (c.getValue()) {
-                  a.push(new sap.ui.model.Filter(c.getName(),
-                          sap.ui.model.FilterOperator.Contains,
-                          c.getValue()));
-              }
-              return a;
+            let v = (c.getValue() || "").trim();
+            if (!v) return a;
+            const name = c.getName();
+            if (name === "LicensePlate") { v = v.toUpperCase(); }
+            a.push(new sap.ui.model.Filter(name, sap.ui.model.FilterOperator.Contains, v));
+            return a;
           }, []);
           const oFilter = aFlt.length ? new sap.ui.model.Filter({filters:aFlt, and:true}) : [];
+          this._carLastFilter = oFilter;       
           this._filterCarTable(oFilter);
       },
   
