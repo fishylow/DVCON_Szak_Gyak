@@ -16,18 +16,18 @@
         <Label id="_IDGenLabel15" text="{i18n>from}"/>
         <Input id="inpFromAddrEdit"
                 placeholder="{i18n>addressIdPlaceholder}"
-                value="{editItem>/FromAddr}"
+                value="{editItem>/FromAddrDisp}"
                 showValueHelp="true"
                 valueHelpRequest=".onAddrValueHelpRequest"
                 liveChange=".onAddrManualChange"/>
 
         <Label id="_IDGenLabel16" text="{i18n>to}"/>
         <Input id="inpToAddrEdit"
-                placeholder="{i18n>addressIdPlaceholder}"
-                value="{editItem>/ToAddr}"
-                showValueHelp="true"
-                valueHelpRequest=".onAddrValueHelpRequest"
-                liveChange=".onAddrManualChange"/>
+              placeholder="{i18n>addressIdPlaceholder}"
+              value="{editItem>/ToAddrDisp}"
+              showValueHelp="true"
+              valueHelpRequest=".onAddrValueHelpRequest"
+              liveChange=".onAddrManualChange"/>
 
         <Label id="_IDGenLabel17" text="{i18n>distance}"/>
         <Input id="_IDGenInput111" value="{editItem>/Distance}" required="true"/>

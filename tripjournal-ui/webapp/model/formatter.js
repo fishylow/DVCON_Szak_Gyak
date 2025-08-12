@@ -127,6 +127,14 @@ sap.ui.define([], function () {
             return oNavProperty.length; 
         },
 
+        totalCostText: function (fValue, sCurr) {
+            const n = Number(fValue);
+            if (!isFinite(n)) { return ""; }
+            // kill binary float noise (e.g., 14.940000000000001)
+            const rounded = Math.round((n + Number.EPSILON) * 100) / 100;
+            return rounded.toFixed(2) + " " + (sCurr || "");
+        },
+
         /**
          * Calculates the total kilometers for the month's trips
          * Adds the starting kilometers to the sum of all trip item distances

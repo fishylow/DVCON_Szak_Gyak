@@ -24,7 +24,14 @@
                         formatter: '.formatter.formatKmAfter'
                     } km"/>
                 <ObjectAttribute id="_IDGenObjectAttribute4" title="{i18n>consumption}" text="{summary>/Gasmilage} l/100 km"/>
-                <ObjectAttribute id="_IDGenObjectAttribute5" title="{i18n>totalCost}"  text="{summary>/TotalCost} {GasCurr}"/>
+                <ObjectAttribute
+                        id="_IDGenObjectAttribute5"
+                        title="{i18n>totalCost}"
+                        text="{
+                            parts: ['summary>/TotalCost','GasCurr'],
+                            formatter: '.formatter.totalCostText'
+                        }"
+                        />
                 <ObjectAttribute id="_IDGenObjectAttribute" title="{i18n>gasPrice}"
                          text="{
                             parts : ['GasPrice','GasCurr'],
@@ -64,7 +71,8 @@
                     <cells>
                         <Text id="_IDGenText16" text="{
                             path: 'Ddate',
-                            type: 'sap.ui.model.type.Date'
+                            type: 'sap.ui.model.type.Date',
+                            formatOptions: { pattern: 'yyyy.MM.dd'}
                         }" />
                         <Text id="_IDGenText18" text="{path: 'FromAddr', formatter: '.formatter.addrName'}"/>
                         <Text id="_IDGenText21" text="{path: 'ToAddr',   formatter: '.formatter.addrName'}"/>

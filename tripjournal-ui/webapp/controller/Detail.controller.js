@@ -156,26 +156,25 @@ function getBatchId() {
          * @memberof tripjournal.tripjournalui.controller.Detail
          * @private
          */
-        _updateSummary: function () {
-            const oHdrPath = this.getView().getBindingContext().getPath();
-            const oModel   = this.getView().getModel();
-            const oSum     = this.getView().getModel(CONSTANTS.SUM_PATH);
+        _updateSummary: function (sHdrPath) {
+        const oCtx = this.getView().getBindingContext && this.getView().getBindingContext();
+        const oHdrPath = sHdrPath || (oCtx && oCtx.getPath());
+        if (!oHdrPath) { return; } // no context yet, bail out
+        const oModel = this.getView().getModel();
+        const oSum   = this.getView().getModel("summary");
 
-            oModel.read(oHdrPath, {
-                urlParameters: { $expand: "to_TripItemSet" },
-                success: (oHdr) => {
-                    const aItems = (oHdr.to_TripItemSet && oHdr.to_TripItemSet.results) || [];
-                    // Sum up all item costs, handling missing or non-numeric values
-                    const totalCost = aItems.reduce((sum, oIt) => {
-                        const cost = Number(oIt.Cost);
-                        return sum + (isNaN(cost) ? 0 : cost);
-                    }, 0);
-                    oSum.setProperty("/TotalCost", totalCost);
-                },
-                error: (oErr) => {
-                    this._handleBackendError(oErr, "Failed to update summary");
-                }
-            });
+        oModel.read(oHdrPath, {
+            urlParameters: { $expand: "to_TripItemSet" },
+            success: (oHdr) => {
+            const aItems = (oHdr.to_TripItemSet && oHdr.to_TripItemSet.results) || [];
+            const totalCost = aItems.reduce((sum, oIt) => {
+                const n = Number(oIt.Cost);
+                return sum + (isNaN(n) ? 0 : n);
+            }, 0);
+            oSum.setProperty("/TotalCost", totalCost);
+            },
+            error: (oErr) => this._handleBackendError(oErr, "Failed to update summary")
+        });
         },
   
         /**
@@ -211,23 +210,24 @@ function getBatchId() {
       
             // Fetch header data and car information to populate summary model
             const oModel = this.getView().getModel();
-            const oSum   = this.getView().getModel(CONSTANTS.SUM_PATH);
-      
+            const oSum   = this.getView().getModel("summary");
+
             oModel.metadataLoaded().then(() => {
-                // Read header with items to calculate total cost
+                // hard reset to avoid showing previous trip’s total
+                oSum.setProperty("/TotalCost", 0);
+
                 oModel.read(sHdrPath, {
-                  success: oHdr => {
-                    const bOpen = oHdr.Status === CONSTANTS.STATUS_OPEN;
+                success: (oHdr) => {
+                    const bOpen = oHdr.Status === "N";
                     this._bOpen = bOpen;
                     this.byId("_IDGenButton").setEnabled(bOpen);
-                    this.byId("editItemBtn").setEnabled(false);    
+                    this.byId("editItemBtn").setEnabled(false);
                     this.byId("delItemBtn").setEnabled(false);
-                    // Update summary after loading header and items
-                    this._updateSummary();
-                  },
-                  error: (oErr) => {
-                      this._handleBackendError(oErr, "Failed to load trip header");
-                  }
+
+                    // pass the path so _updateSummary doesn't depend on context timing
+                    this._updateSummary(sHdrPath);
+                },
+                error: (oErr) => this._handleBackendError(oErr, "Failed to load trip header")
                 });
       
                 // Read car data to get fuel consumption
@@ -336,6 +336,30 @@ function getBatchId() {
                       oI18n.getText("msgDateValidationError", [iHdrYear, String(iHdrMonth).padStart(2, "0")])
                   );
             }
+
+            // --- Mandatory address fields ---
+            const oI18n = this.getOwnerComponent().getModel("i18n").getResourceBundle();
+            const oFromIn = this.byId("inpFromAddrEdit");
+            const oToIn   = this.byId("inpToAddrEdit");
+
+            // defensive reset (and avoid undefined access)
+            [oFromIn, oToIn].forEach(c => c && (c.setValueState(sap.ui.core.ValueState.None)));
+
+            const vFrom = oRaw.FromAddr;
+            const vTo   = oRaw.ToAddr;
+            const miss  = (v) => String(v ?? "").trim() === "" || !Number.isFinite(Number(v)) || Number(v) <= 0;
+
+            if (miss(vFrom) || miss(vTo)) {
+            if (miss(vFrom) && oFromIn) {
+                oFromIn.setValueState(sap.ui.core.ValueState.Error);
+                oFromIn.setValueStateText(oI18n.getText("fieldRequired"));
+            }
+            if (miss(vTo) && oToIn) {
+                oToIn.setValueState(sap.ui.core.ValueState.Error);
+                oToIn.setValueStateText(oI18n.getText("fieldRequired"));
+            }
+            return sap.m.MessageBox.error(oI18n.getText("msgAddressRequired"));
+            }
             
             // Validate that from and to addresses are different
             if (oRaw.FromAddr === oRaw.ToAddr) {
@@ -422,7 +446,14 @@ function getBatchId() {
           
             // Get selected item data and create JSON model for editing
             const oCtx  = this.byId("tripItemTable").getSelectedItem().getBindingContext();
+            const oItem = Object.assign({}, oCtx.getObject());
             const oJSON = new JSONModel(Object.assign({}, oCtx.getObject()));
+
+            const oCache = sap.ui.getCore().getModel(CONSTANTS.ADDRESS_CACHE_MODEL);
+            const mAddr  = (oCache && oCache.getProperty(CONSTANTS.ADDRESS_CACHE_PATH)) || {};
+            oJSON.setProperty("/FromAddrDisp", mAddr[oItem.FromAddr]?.Name || String(oItem.FromAddr ?? ""));
+            oJSON.setProperty("/ToAddrDisp",   mAddr[oItem.ToAddr]?.Name   || String(oItem.ToAddr   ?? ""));
+
             this._oEditItemDlg.setModel(oJSON, "editItem");
             this._oEditItemDlg.open();
         },
@@ -437,48 +468,56 @@ function getBatchId() {
          */
         onUpdateItem: function () {
             const oRaw  = this._oEditItemDlg.getModel("editItem").getData();
-            const sPath = this.byId("tripItemTable")
-                             .getSelectedItem().getBindingContext().getPath();
-  
-            // Get header values for fuel price and currency
+            const sPath = this.byId("tripItemTable").getSelectedItem().getBindingContext().getPath();
+
+            // ---- validate addresses (same as create) ----
+            const miss  = v => String(v ?? "").trim() === "" || !Number.isFinite(Number(v)) || Number(v) <= 0;
+            if (miss(oRaw.FromAddr) || miss(oRaw.ToAddr)) {
+                const oI18n = this.getOwnerComponent().getModel("i18n").getResourceBundle();
+                return sap.m.MessageBox.error(oI18n.getText("msgAddressRequired"));
+            }
+            if (Number(oRaw.FromAddr) === Number(oRaw.ToAddr)) {
+                const oI18n = this.getOwnerComponent().getModel("i18n").getResourceBundle();
+                return sap.m.MessageBox.error(oI18n.getText("msgAddressValidationError"));
+            }
+
             const oHdr   = this.getView().getBindingContext().getObject();
             const oModel = this.getView().getModel();
-            const sCarPath = "/" + oModel.createKey("ZbnhCarSet", {
-                LicensePlate: oHdr.LicensePlate
-            });
-  
+            const sCarPath = "/" + oModel.createKey("ZbnhCarSet", { LicensePlate: oHdr.LicensePlate });
+
             oModel.read(sCarPath, {
                 success: oCar => {
-                    const fGasmilage = Number(oCar.Gasmilage) || 0;
-                    const fCost      = calcCost(oRaw.Distance, fGasmilage, oHdr.GasPrice);
-  
-                    // Prepare updated payload
-                    const oPayload = Object.assign({}, oRaw, {
-                        FromAddr: Number(oRaw.FromAddr),
-                        ToAddr:   Number(oRaw.ToAddr),
-                        Distance: Number(oRaw.Distance),
-                        Cost:     String(fCost),
-                        Currency: oHdr.GasCurr
-                    });
-  
-                    // Update item in backend
-                    oModel.update(sPath, oPayload, {
-                        merge:   true,
-                        success: () => {
-                            const oI18n = this.getOwnerComponent().getModel("i18n").getResourceBundle();
-                            MessageToast.show(oI18n.getText("msgItemUpdated"));
-                            this._oEditItemDlg.close();
-                            // Clear model after close
-                            this._oEditItemDlg.setModel(new JSONModel({}), "editItem");
-                            this._updateKmAfter();
-                            this._updateSummary();
-                        },
-                        error:   oErr => this._handleBackendError(oErr, "Failed to update item")
-                    });
+                const fGasmilage = Number(oCar.Gasmilage) || 0;
+                const fCost      = calcCost(oRaw.Distance, fGasmilage, oHdr.GasPrice);
+
+                // ---- build CLEAN payload (no *Disp, only server fields) ----
+                const d = oRaw.Ddate instanceof Date ? oRaw.Ddate : new Date(oRaw.Ddate);
+                const oPayload = {
+                    FromAddr : Number(oRaw.FromAddr),
+                    ToAddr   : Number(oRaw.ToAddr),
+                    Ddate    : fmtLocalDate(d),
+                    Distance : Number(oRaw.Distance),
+                    Cost     : String(fCost),
+                    Currency : oHdr.GasCurr,
+                    Note     : oRaw.Note
+                };
+
+                oModel.update(sPath, oPayload, {
+                    merge: true,
+                    success: () => {
+                    const oI18n = this.getOwnerComponent().getModel("i18n").getResourceBundle();
+                    sap.m.MessageToast.show(oI18n.getText("msgItemUpdated"));
+                    this._oEditItemDlg.close();
+                    this._oEditItemDlg.setModel(new sap.ui.model.json.JSONModel({}), "editItem");
+                    this._updateKmAfter();
+                    this._updateSummary();
+                    },
+                    error: oErr => this._handleBackendError(oErr, "Failed to update item")
+                });
                 },
                 error: oErr => this._handleBackendError(oErr, "Failed to load car data")
             });
-        },
+            },
   
         /**
          * Cancels item dialog operations
