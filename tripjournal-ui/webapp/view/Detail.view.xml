@@ -51,6 +51,8 @@
                 <Toolbar id="_IDGenToolbar2">
                 <Title id="_IDGenTitle2" text="{i18n>itemsTitle}" level="H2"/>
                 <ToolbarSpacer id="_IDGenToolbarSpacer2"/>
+                <Button id="attBtn" icon="sap-icon://attachment" enabled="false" tooltip="{i18n>attachmentsBtn}"
+          press=".onOpenAttachmentsDialog"/>
                 <Button id="_IDGenButton" icon="sap-icon://add"    press=".onOpenCreateItemDialog"/>
                 <Button id="editItemBtn"  icon="sap-icon://edit"  enabled="false"
                         press=".onOpenEditItemDialog"/>
