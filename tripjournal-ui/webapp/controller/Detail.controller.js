@@ -879,7 +879,6 @@ function getBatchId() {
             // ---- normalize raw response text ---------------------------------
             const pick = (...xs) => xs.find(x => typeof x === "string" && x.trim().length);
             let raw = pick(
-              // datajs / v2 model common spots
               oErr?.response?.responseText,
               oErr?.response?.body,
               oErr?.responseText,
@@ -897,7 +896,7 @@ function getBatchId() {
             let mainText = "";
             let detailsText = "";
           
-            // 0) sap-message header beats all (some GW stacks send only this)
+        
             const hdr = oErr?.response?.headers || oErr?.headers;
             const sapMsgHeader = hdr && (hdr["sap-message"] || hdr["Sap-Message"] || hdr["SAP-Message"]);
             if (sapMsgHeader) {
@@ -907,11 +906,9 @@ function getBatchId() {
               }
             }
           
-            // 1) JSON body: could be standard { error: {...} } OR a top-level array [...]
             if (!mainText && typeof raw === "string") {
               const j = parseJSON(raw);
           
-              // a) classic OData error
               const aDetails = j?.error?.innererror?.errordetails || j?.error?.details;
               if (Array.isArray(aDetails) && aDetails.length) {
                 const bucket = aDetails.filter(d => (d.type || d.severity || "").toLowerCase() === "error");
@@ -925,7 +922,6 @@ function getBatchId() {
                 }).join("\n");
               }
           
-              // b) top-level array (your example)
               if (!mainText && Array.isArray(j) && j.length) {
                 const bucket = j.filter(d => (d.type || "").toLowerCase() === "error");
                 const arr = bucket.length ? bucket : j;
@@ -938,7 +934,6 @@ function getBatchId() {
                 }).join("\n");
               }
           
-              // c) fallback: single error.message
               if (!mainText) {
                 mainText = j?.error?.message?.value || j?.error?.message || "";
               }
@@ -972,7 +967,7 @@ function getBatchId() {
 
             // Lazy-load the fragment
             if (!this._oAttDlg) {
-                this._attFragId = this.createId("attFrag"); // scoped ID prefix
+                this._attFragId = this.createId("attFrag"); 
                 this._oAttDlg = await sap.ui.core.Fragment.load({
                 id: this._attFragId,
                 name: "tripjournal.tripjournalui.view.AttachmentsDialog",
@@ -984,7 +979,7 @@ function getBatchId() {
             // Compute upload URL: /<service>/TripItemSet(key)/ZbnAttachmentSet
             const oModel    = this.getView().getModel();
             const sService  = (oModel.sServiceUrl || "").replace(/\/$/, "");
-            const sItemPath = oSelItem.getBindingContext().getPath(); // e.g. /TripItemSet(Username='...',...)
+            const sItemPath = oSelItem.getBindingContext().getPath(); 
             const sUploadUrl = `${sService}${sItemPath}/ZbnAttachmentSet`;
 
             // Set dialog local model
@@ -996,31 +991,26 @@ function getBatchId() {
 
             // Force raw (non-multipart) upload which CREATE_STREAM expects
             const oUpl = sap.ui.core.Fragment.byId(this._attFragId, "attUploadSet");
-            const oFU  = oUpl.getDefaultFileUploader(); // provided by UploadSet
+            const oFU  = oUpl.getDefaultFileUploader(); 
             oFU.setSendXHR(true);
-            oFU.setUseMultipart(false); // raw stream, not multipart/form-data  // <-- important
+            oFU.setUseMultipart(false); 
 
             // Load and show existing attachments
             await this._refreshAttachmentsList(sItemPath);
             this._oAttDlg.open();
             },
 
-            /** Adds CSRF + Slug headers before each file upload */
             onAttBeforeUploadStarts: function (oEvent) {
             const oModel = this.getView().getModel();
-            // ensure token (usually handled by the model; refresh if empty)
             if (!oModel.getSecurityToken()) {
                 oModel.refreshSecurityToken();
             }
             const sToken    = oModel.getSecurityToken();
             const sFileName = oEvent.getParameter("fileName");
-            const oItem     = oEvent.getParameter("item"); // UploadSetItem
+            const oItem     = oEvent.getParameter("item"); 
 
-            // UploadSet takes header fields via core Item with key/text (not value)
             oItem.addHeaderField(new sap.ui.core.Item({ key: "x-csrf-token", text: sToken }));
             oItem.addHeaderField(new sap.ui.core.Item({ key: "Slug",         text: sFileName }));
-            // (Slug is the canonical place to pass the file name to CREATE_STREAM) 
-            // refs: SAP GW media handling best practices
             },
 
             /** Refresh list after upload completes */
@@ -1066,11 +1056,10 @@ function getBatchId() {
                     const oUSItem = new sap.m.upload.UploadSetItem({
                         fileName : a.FileName,
                         mediaType: a.MimeType,
-                        url      : sDownload,              // used on press to download
-                        visibleEdit  : false,              // no rename
-                        visibleRemove: false               // deletion disabled by service
+                        url      : sDownload,              
+                        visibleEdit  : false,              
+                        visibleRemove: false               
                     });
-                    // Optional: show more info in the list
                     oUSItem.addAttribute(new sap.m.ObjectAttribute({ title: "Type",   text: a.MimeType }));
                     oUSItem.addAttribute(new sap.m.ObjectAttribute({ title: "Size",   text: (a.Size || 0) + " B" }));
                     if (a.CreatedAt) {
