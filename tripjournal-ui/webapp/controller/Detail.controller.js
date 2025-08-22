@@ -20,6 +20,19 @@ function getBatchId() {
     const qty = Number(distanceKm) / 100 * Number(lPer100Km);            // liters consumed
     return +(qty * Number(fuelPrice)).toFixed(3);                        
   }
+
+  /**
+ * Helper: returns the binding path of the currently selected TripItem
+ * Uses the cached path from the attachments dialog if available.
+ * @private
+ * @returns {string|null}
+ */
+function _getSelectedItemPath () {
+    if (this._attItemPath) { return this._attItemPath; }
+    const oTable = this.byId && this.byId("tripItemTable");
+    const oSel   = oTable && oTable.getSelectedItem && oTable.getSelectedItem();
+    return oSel ? oSel.getBindingContext().getPath() : null;
+}
   
   /**
    * Converts a JS Date to the backend's yyyy-MM-ddT00:00:00 (local) format
@@ -39,14 +52,16 @@ function getBatchId() {
     "sap/m/MessageToast",            
     "sap/m/MessageBox",          
     "sap/ui/model/json/JSONModel",  
-    "./../model/formatter" 
+    "./../model/formatter",
+    "sap/ui/unified/FileUploaderParameter" 
   ], function (Controller,
     History,
     Fragment,             
     MessageToast,
     MessageBox,
     JSONModel,
-    formatter) {
+    formatter,
+    FileUploaderParameter) {
     "use strict";
   
     // Constants for better maintainability
@@ -979,8 +994,10 @@ function getBatchId() {
             // Compute upload URL: /<service>/TripItemSet(key)/ZbnAttachmentSet
             const oModel    = this.getView().getModel();
             const sService  = (oModel.sServiceUrl || "").replace(/\/$/, "");
-            const sItemPath = oSelItem.getBindingContext().getPath(); 
+            const sItemPath = oSelItem.getBindingContext().getPath();
             const sUploadUrl = `${sService}${sItemPath}/ZbnAttachmentSet`;
+
+            this._attItemPath = sItemPath; // cache for post-upload refresh
 
             // Set dialog local model
             const oJSON = new sap.ui.model.json.JSONModel({
@@ -991,9 +1008,6 @@ function getBatchId() {
 
             // Force raw (non-multipart) upload which CREATE_STREAM expects
             const oUpl = sap.ui.core.Fragment.byId(this._attFragId, "attUploadSet");
-            const oFU  = oUpl.getDefaultFileUploader(); 
-            oFU.setSendXHR(true);
-            oFU.setUseMultipart(false); 
 
             // Load and show existing attachments
             await this._refreshAttachmentsList(sItemPath);
@@ -1001,30 +1015,79 @@ function getBatchId() {
             },
 
             onAttBeforeUploadStarts: function (oEvent) {
-            const oModel = this.getView().getModel();
-            if (!oModel.getSecurityToken()) {
-                oModel.refreshSecurityToken();
-            }
-            const sToken    = oModel.getSecurityToken();
-            const sFileName = oEvent.getParameter("fileName");
-            const oItem     = oEvent.getParameter("item"); 
+                const oModel   = this.getView().getModel();
+                if (!oModel.getSecurityToken()) { oModel.refreshSecurityToken(); }
+                const sToken   = oModel.getSecurityToken();
+                const sName    = oEvent.getParameter("fileName");
+                const oItem    = oEvent.getParameter("item");
 
-            oItem.addHeaderField(new sap.ui.core.Item({ key: "x-csrf-token", text: sToken }));
-            oItem.addHeaderField(new sap.ui.core.Item({ key: "Slug",         text: sFileName }));
-            },
+                // UploadSet header fields use sap.ui.core.Item (key/text)
+                oItem.addHeaderField(new sap.ui.core.Item({ key: "x-csrf-token", text: sToken }));
+                oItem.addHeaderField(new sap.ui.core.Item({ key: "Slug",         text: sName  }));
+                //oItem.addHeaderField(new sap.m.upload.UploadSetParameter({ name: "x-csrf-token", value: sToken }));
+                //oItem.addHeaderField(new sap.m.upload.UploadSetParameter({ name: "Slug",         value: sName  }));
+                },
 
             /** Refresh list after upload completes */
-            onAttUploadCompleted: function () {
-            const oTable   = this.byId("tripItemTable");
-            const sItemPath = oTable.getSelectedItem().getBindingContext().getPath();
-            this._refreshAttachmentsList(sItemPath);
+            onAttUploadCompleted: function (e) {
+                const item   = e.getParameter("item");
+                const status = item && item.getStatus && item.getStatus();
+
+                if (typeof status === "number" && status >= 400) {
+                    this._handleBackendError({ statusText: "Upload failed" }, "Attachment upload");
+                    return;
+                }
+
+                const sPath = this._getSelectedItemPath();
+                if (sPath) {
+                    this._refreshAttachmentsList(sPath);
+                }
+            },
+
+
+            onAttachmentDownload: function () {
+                const oUpl = sap.ui.core.Fragment.byId(this._attFragId, "attUploadSet");
+                if (!oUpl) { return; }
+
+                const aSel = oUpl.getSelectedItems ? oUpl.getSelectedItems() : [];
+                if (!aSel.length) {
+                    const oI18n = this.getOwnerComponent().getModel("i18n").getResourceBundle();
+                    sap.m.MessageToast.show(oI18n.getText("msgSelectAttachmentFirst") || "Select a file first");
+                    return;
+                }
+
+                aSel.forEach(function (it) {
+                    const sUrl = it.getUrl && it.getUrl();
+                    if (sUrl) { sap.m.URLHelper.redirect(sUrl, true); }
+                });
             },
 
             /** Download when pressing an item */
             onAttItemPressed: function (oEvent) {
-            const oItem = oEvent.getParameter("item");
-            const sUrl  = oItem.getUrl();
-            if (sUrl) { window.open(sUrl, "_blank"); }
+                const oItem = (oEvent.getParameter && oEvent.getParameter("item")) || oEvent.getSource();
+                const sUrl  = oItem && oItem.getUrl && oItem.getUrl();
+
+                if (sUrl) {
+                    sap.m.URLHelper.redirect(sUrl, true);
+                    return;
+                }
+
+                // Fallback: build $value URL from bound context (if any)
+                const oCtx = (oItem && oItem.getBindingContext && oItem.getBindingContext()) || null;
+                if (!oCtx) { return; }
+
+                const oModel = this.getView().getModel();
+                const sKey = oModel.createKey("ZbnAttachmentSet", {
+                    Username:     oCtx.getProperty("Username"),
+                    Yyear:        oCtx.getProperty("Yyear"),
+                    Mmonth:       oCtx.getProperty("Mmonth"),
+                    Licenseplate: oCtx.getProperty("Licenseplate"),
+                    Batchid:      oCtx.getProperty("Batchid"),
+                    Docid:        oCtx.getProperty("Docid")
+                });
+
+                const sUrl2 = oModel.sServiceUrl.replace(/\/$/, "") + "/" + sKey + "/$value";
+                sap.m.URLHelper.redirect(sUrl2, true);
             },
 
             /** Close dialog */
@@ -1035,38 +1098,52 @@ function getBatchId() {
             /** Reads attachments and binds them as UploadSet items (download via $value) */
             _refreshAttachmentsList: function (sItemPath) {
             return new Promise((resolve, reject) => {
-                const oModel = this.getView().getModel();
-                const oUpl   = sap.ui.core.Fragment.byId(this._attFragId, "attUploadSet");
+                const oModel   = this.getView().getModel();
+                const oUpl     = sap.ui.core.Fragment.byId(this._attFragId, "attUploadSet");
                 const sService = (oModel.sServiceUrl || "").replace(/\/$/, "");
 
                 oModel.read(`${sItemPath}/ZbnAttachmentSet`, {
-                success: (oData) => {
+                success: ({ results = [] }) => {
                     oUpl.removeAllItems();
-                    (oData.results || []).forEach((a) => {
-                    // Build $value URL for media download
-                    const sAttKey = oModel.createKey("ZbnAttachmentSet", {
-                        Username    : a.Username,
-                        Yyear       : a.Yyear,
-                        Mmonth      : a.Mmonth,
-                        LicensePlate: a.LicensePlate,
-                        Batchid     : a.Batchid,
-                        Docid       : a.Docid
+
+                    results.forEach((a) => {
+                    // tolerate casing differences
+                    const sName = a.FileName || a.Filename || a.filename || "document";
+                    const sType = a.MimeType || a.Mimetype || a.mimetype || "application/octet-stream";
+
+                    // canonical media URL if present; else use entity URI + "/$value"
+                    const meta   = a.__metadata || {};
+                    const sKey2 = oModel.createKey("ZbnAttachmentSet", {
+                    Username:     a.Username,
+                    Yyear:        a.Yyear,
+                    Mmonth:       a.Mmonth,
+                    Licenseplate: a.Licenseplate,
+                    Batchid:      a.Batchid,
+                    Docid:        a.Docid
                     });
-                    const sDownload = `${sService}/${sAttKey}/$value`;
+                    const sUrl = meta.media_src || (meta.uri ? `${meta.uri}/$value`
+                                : `${sService}/${sKey2}/$value`);
+
                     const oUSItem = new sap.m.upload.UploadSetItem({
-                        fileName : a.FileName,
-                        mediaType: a.MimeType,
-                        url      : sDownload,              
-                        visibleEdit  : false,              
-                        visibleRemove: false               
+                        fileName     : sName,
+                        mediaType    : sType,
+                        url          : sUrl,
+                        visibleEdit  : false,
+                        visibleRemove: false
                     });
-                    oUSItem.addAttribute(new sap.m.ObjectAttribute({ title: "Type",   text: a.MimeType }));
-                    oUSItem.addAttribute(new sap.m.ObjectAttribute({ title: "Size",   text: (a.Size || 0) + " B" }));
-                    if (a.CreatedAt) {
-                        oUSItem.addAttribute(new sap.m.ObjectAttribute({ title: "Created", text: new Date(a.CreatedAt).toLocaleString() }));
+
+                    if (a.Size != null) {
+                        oUSItem.addAttribute(new sap.m.ObjectAttribute({ title: "Size", text: `${a.Size} B` }));
                     }
+                    if (a.CreatedAt) {
+                        const d = (a.CreatedAt instanceof Date) ? a.CreatedAt : new Date(a.CreatedAt);
+                        oUSItem.addAttribute(new sap.m.ObjectAttribute({ title: "Created", text: d.toLocaleString() }));
+                    }
+
                     oUpl.addItem(oUSItem);
                     });
+
+                    oUpl.invalidate();
                     resolve();
                 },
                 error: (e) => {

@@ -20,6 +20,7 @@
             <OverflowToolbar id="_IDGenOverflowToolbar">
               <ToolbarSpacer id="_IDGenToolbarSpacer3"/>
               <Button id="_IDGenButton7" text="{i18n>close}" press=".onAttClose"/>
+              <Button id="_IDGenButton45678" text="{i18n>download}" press=".onAttItemPressed"/>
             </OverflowToolbar>
           </up:toolbar>
         </up:UploadSet>
