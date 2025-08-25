@@ -396,55 +396,69 @@ sap.ui.define([
          * @memberof tripjournal.tripjournalui.controller.TripJournal
          */
         onCreateTrip: function () {
-            // Read data from the model
-            const oCreate = this._oCreateDialog.getModel("create").getData();
-        
-            const sGasPrice = Number(oCreate.GasPrice || 0).toFixed(3);   
-            const d = (oCreate.PeriodDate instanceof Date && !isNaN(+oCreate.PeriodDate))
-                ? oCreate.PeriodDate : new Date();
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, "0");       
-            // Compose payload for backend
-            const oPayload = {
-                Username    : getCurrentUser(),
-                Yyear       : Number(y),
-                Mmonth      : m,
-                LicensePlate: oCreate.LicensePlate,
-                KmBefore    : Number(oCreate.KmBefore),
-                KmAfter     : Number(oCreate.KmBefore),
-                GasPrice    : Number(oCreate.GasPrice).toFixed(3),
-                GasCurr     : oCreate.GasCurr,
-                Status      : CONSTANTS.DEFAULT_STATUS,
-                Note        : oCreate.Note || ""
-            };
-        
-            // Create header in backend
-            this.getView().getModel().create("/TripHeaderSet", oPayload, {
-                success: function () {
-                    const oI18n = this.getOwnerComponent().getModel("i18n").getResourceBundle();
-                    MessageToast.show(oI18n.getText("msgTripCreated"));
-                    this._oCreateDialog.close();
-                    // Clear model after close
-                    const oData = {
-                        Yyear: new Date().getFullYear(),
-                        Mmonth: ("0" + (new Date().getMonth() + 1)).slice(-2),
-                        LicensePlate: "",
-                        KmBefore: 0,
-                        GasPrice: 0,
-                        GasCurr: CONSTANTS.DEFAULT_CURRENCY
-                    };
-                    this._oCreateDialog.setModel(new JSONModel(oData), "create");
-                    // Refresh header list
-                    this.byId("tripHeaderTable")
-                        .getBinding("items")
-                        .refresh();
-                }.bind(this),
-                error: function (oErr) {
-                    const oI18n = this.getOwnerComponent().getModel("i18n").getResourceBundle();
-                    this._handleBackendError(oErr, "Error")
-                }.bind(this)
+        // 0) Gather dialog data
+        const oCreate = this._oCreateDialog.getModel("create").getData();
+        const d = (oCreate.PeriodDate instanceof Date && !isNaN(+oCreate.PeriodDate)) ? oCreate.PeriodDate : new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const sPlate = String(oCreate.LicensePlate || "").toUpperCase();
+        const sUser  = getCurrentUser();
+
+        // 1) Prepare payload (same as before)
+        const oPayload = {
+          Username    : sUser,
+          Yyear       : Number(y),
+          Mmonth      : m,
+          LicensePlate: sPlate,
+          KmBefore    : Number(oCreate.KmBefore),
+          KmAfter     : Number(oCreate.KmBefore),
+          GasPrice    : Number(oCreate.GasPrice).toFixed(3),
+          GasCurr     : oCreate.GasCurr,
+          Status      : "N",
+          Note        : oCreate.Note || ""
+        };
+
+        const oModel = this.getView().getModel();
+        const oI18n  = this.getOwnerComponent().getModel("i18n").getResourceBundle();
+
+        // 2) Pre-check for duplicate header
+        const aFilters = [
+          new sap.ui.model.Filter("Username",     sap.ui.model.FilterOperator.EQ, sUser),
+          new sap.ui.model.Filter("Yyear",        sap.ui.model.FilterOperator.EQ, String(y)),
+          new sap.ui.model.Filter("Mmonth",       sap.ui.model.FilterOperator.EQ, m),
+          new sap.ui.model.Filter("LicensePlate", sap.ui.model.FilterOperator.EQ, sPlate)
+        ];
+
+        oModel.read("/TripHeaderSet", {
+          filters: aFilters,
+          urlParameters: { "$top": 1, "$select": "Username" }, // cheap existence check
+          success: (oData) => {
+            if ((oData.results || []).length > 0) {
+              sap.m.MessageBox.error(oI18n.getText("errorHeaderExists", [sPlate, y, m]));
+              return;
+            }
+            // 3) Not found -> create it
+            oModel.create("/TripHeaderSet", oPayload, {
+              success: () => {
+                sap.m.MessageToast.show(oI18n.getText("msgTripCreated"));
+                this._oCreateDialog.close();
+                const oReset = {
+                  Yyear: new Date().getFullYear(),
+                  Mmonth: ("0" + (new Date().getMonth() + 1)).slice(-2),
+                  LicensePlate: "",
+                  KmBefore: 0,
+                  GasPrice: 0,
+                  GasCurr: "EUR"
+                };
+                this._oCreateDialog.setModel(new sap.ui.model.json.JSONModel(oReset), "create");
+                this.byId("tripHeaderTable").getBinding("items").refresh();
+              },
+              error: (oErr) => this._handleBackendError(oErr, "Error")
             });
-        },
+          },
+          error: (oErr) => this._handleBackendError(oErr, "Failed to check duplicates")
+        });
+      },
   
         /**
          * Opens address value help dialog
