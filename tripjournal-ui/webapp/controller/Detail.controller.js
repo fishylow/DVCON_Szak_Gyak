@@ -53,7 +53,7 @@ function _getSelectedItemPath () {
     "sap/m/MessageBox",          
     "sap/ui/model/json/JSONModel",  
     "./../model/formatter",
-    "sap/ui/unified/FileUploaderParameter" 
+    "sap/ui/core/Item"
   ], function (Controller,
     History,
     Fragment,             
@@ -61,7 +61,7 @@ function _getSelectedItemPath () {
     MessageBox,
     JSONModel,
     formatter,
-    FileUploaderParameter) {
+    Item) {
     "use strict";
   
     // Constants for better maintainability
@@ -1015,18 +1015,24 @@ function _getSelectedItemPath () {
             },
 
             onAttBeforeUploadStarts: function (oEvent) {
-                const oModel   = this.getView().getModel();
-                if (!oModel.getSecurityToken()) { oModel.refreshSecurityToken(); }
-                const sToken   = oModel.getSecurityToken();
-                const sName    = oEvent.getParameter("fileName");
-                const oItem    = oEvent.getParameter("item");
+            const oItem = oEvent.getParameter("item");      // UploadSetItem
+            const file  = oItem.getFileObject && oItem.getFileObject();
 
-                // UploadSet header fields use sap.ui.core.Item (key/text)
-                oItem.addHeaderField(new sap.ui.core.Item({ key: "x-csrf-token", text: sToken }));
-                oItem.addHeaderField(new sap.ui.core.Item({ key: "Slug",         text: sName  }));
-                //oItem.addHeaderField(new sap.m.upload.UploadSetParameter({ name: "x-csrf-token", value: sToken }));
-                //oItem.addHeaderField(new sap.m.upload.UploadSetParameter({ name: "Slug",         value: sName  }));
-                },
+            // pass original filename via OData Slug (URL-encoded)
+            oItem.addHeaderField(new sap.ui.core.Item({
+                key: "Slug",
+                text: encodeURIComponent(oItem.getFileName())
+            }));
+
+            // ensure Content-Type isn’t left empty (UI5 will then use this)
+            if (file && file.type) {
+                oItem.setMediaType(file.type);
+            }
+
+            // CSRF if your backend needs it
+            const sToken = this.getView().getModel().getSecurityToken();
+            oItem.addHeaderField(new sap.ui.core.Item({ key: "x-csrf-token", text: sToken }));
+            },
 
             /** Refresh list after upload completes */
             onAttUploadCompleted: function (e) {
@@ -1038,7 +1044,7 @@ function _getSelectedItemPath () {
                     return;
                 }
 
-                const sPath = this._getSelectedItemPath();
+                const sPath = _getSelectedItemPath.call(this);
                 if (sPath) {
                     this._refreshAttachmentsList(sPath);
                 }
@@ -1081,7 +1087,7 @@ function _getSelectedItemPath () {
                     Username:     oCtx.getProperty("Username"),
                     Yyear:        oCtx.getProperty("Yyear"),
                     Mmonth:       oCtx.getProperty("Mmonth"),
-                    Licenseplate: oCtx.getProperty("Licenseplate"),
+                    LicensePlate: oCtx.getProperty("LicensePlate"),
                     Batchid:      oCtx.getProperty("Batchid"),
                     Docid:        oCtx.getProperty("Docid")
                 });
@@ -1095,63 +1101,127 @@ function _getSelectedItemPath () {
             this._oAttDlg.close();
             },
 
+            onAttOpenItem: function (oEvent) {
+  // stop UploadSet’s default link navigation
+  oEvent.preventDefault?.();
+
+  const item = oEvent.getSource();
+
+  // 1) Prefer the item's direct URL if present
+  let sUrl = (item.getUrl && item.getUrl()) || null;
+
+  // 2) Fallback: build $value URL from binding context
+  if (!sUrl) {
+    const ctx  = item.getBindingContext && item.getBindingContext();
+    if (ctx) {
+      const m     = ctx.getModel();
+      const path  = ctx.getPath();
+      const sBase = (m && m.sServiceUrl || "").replace(/\/$/, "");
+      sUrl        = sBase + path + "/$value";
+    }
+  }
+  if (!sUrl) { return; }
+
+  // Hidden iframe — triggers download without opening a tab
+  let iframe = document.getElementById("attachmentDownloadFrame");
+  if (!iframe) {
+    iframe = document.createElement("iframe");
+    iframe.id = "attachmentDownloadFrame";
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+  }
+  iframe.src = sUrl;
+},
             /** Reads attachments and binds them as UploadSet items (download via $value) */
-            _refreshAttachmentsList: function (sItemPath) {
-            return new Promise((resolve, reject) => {
-                const oModel   = this.getView().getModel();
-                const oUpl     = sap.ui.core.Fragment.byId(this._attFragId, "attUploadSet");
-                const sService = (oModel.sServiceUrl || "").replace(/\/$/, "");
+_refreshAttachmentsList: function (sItemPath) {
+    return new Promise((resolve, reject) => {
+        const oModel   = this.getView().getModel();
+        const oUpl     = sap.ui.core.Fragment.byId(this._attFragId, "attUploadSet");
+        const sService = (oModel.sServiceUrl || "").replace(/\/$/, "");
 
-                oModel.read(`${sItemPath}/ZbnAttachmentSet`, {
-                success: ({ results = [] }) => {
-                    oUpl.removeAllItems();
+        oModel.read(`${sItemPath}/ZbnAttachmentSet`, {
+            success: ({ results = [] }) => {
+                oUpl.removeAllItems();
 
-                    results.forEach((a) => {
-                    // tolerate casing differences
-                    const sName = a.FileName || a.Filename || a.filename || "document";
-                    const sType = a.MimeType || a.Mimetype || a.mimetype || "application/octet-stream";
+                results.forEach((a) => {
+                    // DEBUG: Log the actual structure to see what properties are available
+                    console.log("Attachment object:", a);
+                    
+                    // Handle both CamelCase and lowercase property names from OData
+                    const sName = a.FileName || a.filename || a.Filename || "document";
+                    const sType = a.MimeType || a.mimetype || a.Mimetype || "application/octet-stream";
+                    
+                    // DEBUG: Log what we're extracting
+                    console.log("Extracted values:", {
+                        originalFileName: a.FileName,
+                        originalMimeType: a.MimeType, 
+                        extractedName: sName,
+                        extractedType: sType
+                    });
 
                     // canonical media URL if present; else use entity URI + "/$value"
                     const meta   = a.__metadata || {};
+                    
+                    // Handle empty LicensePlate - get it from the parent TripItem context
+                    let sLicensePlate = a.LicensePlate;
+                    if (!sLicensePlate) {
+                        // Extract from the item path like /TripItemSet(Username='BENDER',...)/ZbnAttachmentSet
+                        const oItemCtx = this.byId("tripItemTable").getSelectedItem().getBindingContext();
+                        sLicensePlate = oItemCtx.getProperty("LicensePlate");
+                    }
+                    
                     const sKey2 = oModel.createKey("ZbnAttachmentSet", {
-                    Username:     a.Username,
-                    Yyear:        a.Yyear,
-                    Mmonth:       a.Mmonth,
-                    Licenseplate: a.Licenseplate,
-                    Batchid:      a.Batchid,
-                    Docid:        a.Docid
+                        Username:     a.Username,
+                        Yyear:        a.Yyear,
+                        Mmonth:       a.Mmonth,
+                        LicensePlate: sLicensePlate,
+                        Batchid:      a.Batchid,
+                        Docid:        a.Docid
                     });
                     const sUrl = meta.media_src || (meta.uri ? `${meta.uri}/$value`
-                                : `${sService}/${sKey2}/$value`);
+                                    : `${sService}/${sKey2}/$value`);
 
                     const oUSItem = new sap.m.upload.UploadSetItem({
                         fileName     : sName,
-                        mediaType    : sType,
                         url          : sUrl,
                         visibleEdit  : false,
                         visibleRemove: false
                     });
+                    
+                    // Try setting mediaType after creation if the property exists
+                    if (oUSItem.setMediaType && typeof oUSItem.setMediaType === 'function') {
+                        oUSItem.setMediaType(sType);
+                    }
+
+                    // Also log what we're setting to verify
+                    console.log("Setting fileName:", sName, "mimeType:", sType);
 
                     if (a.Size != null) {
-                        oUSItem.addAttribute(new sap.m.ObjectAttribute({ title: "Size", text: `${a.Size} B` }));
+                        oUSItem.addAttribute(new sap.m.ObjectAttribute({ 
+                            title: "Size", 
+                            text: `${a.Size} B` 
+                        }));
                     }
                     if (a.CreatedAt) {
                         const d = (a.CreatedAt instanceof Date) ? a.CreatedAt : new Date(a.CreatedAt);
-                        oUSItem.addAttribute(new sap.m.ObjectAttribute({ title: "Created", text: d.toLocaleString() }));
+                        oUSItem.addAttribute(new sap.m.ObjectAttribute({ 
+                            title: "Created", 
+                            text: d.toLocaleString() 
+                        }));
                     }
 
                     oUpl.addItem(oUSItem);
-                    });
-
-                    oUpl.invalidate();
-                    resolve();
-                },
-                error: (e) => {
-                    this._handleBackendError && this._handleBackendError(e, "Failed to load attachments");
-                    reject(e);
-                }
                 });
-            });
+
+                oUpl.invalidate();
+                resolve();
             },
+            error: (e) => {
+                this._handleBackendError && this._handleBackendError(e, "Failed to load attachments");
+                reject(e);
+            }
+        });
+    });
+},
     });
   });
